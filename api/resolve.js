@@ -1,7 +1,5 @@
-import fetch from "node-fetch";
-
 export default async function handler(req, res) {
-  const { platform, url } = req.query;
+  const { url } = req.query;
 
   if (!url) return res.status(400).json({ error: "Missing URL" });
 
@@ -16,15 +14,21 @@ export default async function handler(req, res) {
       }
     );
 
+    if (!apiRes.ok) {
+      const txt = await apiRes.text();
+      console.error("RapidAPI error:", txt);
+      return res.status(500).json({ error: "RapidAPI failed" });
+    }
+
     const data = await apiRes.json();
     const finalLink = data.url || data.result || data.data?.url;
 
-    if (!finalLink) throw new Error("No link in API response");
+    if (!finalLink) return res.status(500).json({ error: "No link in response" });
 
     res.json({ finalLink });
 
   } catch (err) {
-    res.status(500).json({ error: err.message || "Resolve failed" });
+    console.error(err);
+    res.status(500).json({ error: "Resolve crashed" });
   }
 }
-
