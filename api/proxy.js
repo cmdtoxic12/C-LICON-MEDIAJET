@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 export default async function handler(req, res) {
   const { url } = req.query;
 
@@ -13,7 +11,7 @@ export default async function handler(req, res) {
 
     fileRes.body.pipe(res);
   } catch (err) {
+    console.error(err);
     res.status(500).end("Proxy error");
   }
 }
-
