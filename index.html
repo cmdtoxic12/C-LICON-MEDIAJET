@@ -237,7 +237,7 @@
 
             try {
                 // Adjust the endpoint '/get' and param 'url=' based on the specific API you choose
-                const response = await fetch(`https://${apiHost}/get?url=${encodeURIComponent(urlInput)}&format=${selectedFormat}`, options);
+                const response = await fetch(`https://${apiHost}/download?link=${encodeURIComponent(urlInput)}&format=${selectedFormat}`, options);
                 const data = await response.json();
 
                 const finalLink = data.url || data.link || data.result;
