@@ -235,12 +235,14 @@ async function triggerDownload() {
 
     try {
         // Ask your backend to resolve the final media link
-        const resolveRes = await fetch(`/api/resolve?platform=${encodeURIComponent(selectedPlatform)}&url=${encodeURIComponent(urlInput)}`);
-        const resolveData = await resolveRes.json();
+        const resolveRes = await fetch(`/api/resolve?url=${encodeURIComponent(urlInput)}`);
 
-        const finalLink = resolveData.finalLink;
+if (!resolveRes.ok) {
+  const t = await resolveRes.text();
+  throw new Error("Resolve failed: " + t);
+}
 
-        if (!finalLink) throw new Error("No download link returned.");
+const resolveData = await resolveRes.json();
 
         // Show manual backup button
         resContainer.innerHTML = `
