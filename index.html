@@ -243,9 +243,25 @@
                 const finalLink = data.url || data.link || data.result;
 
                 if (finalLink) {
-                    window.open(finalLink, '_blank');
-                    btn.innerText = "SUCCESS!";
-                } else {
+    // 1. Create a hidden 'a' element
+    const link = document.createElement('a');
+    link.href = finalLink;
+    
+    // 2. Set the 'download' attribute and file name
+    // This tells the browser: "Don't play this, save it!"
+    link.setAttribute('download', `MediaJet_${selectedPlatform}.${selectedFormat}`);
+    
+    // 3. Set target to _blank as a backup
+    link.target = '_blank';
+    
+    // 4. Append, Click, and Remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    btn.innerText = "SUCCESS!";
+}
+ else {
                     throw new Error("No link found");
                 }
             } catch (error) {
