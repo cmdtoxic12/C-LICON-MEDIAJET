@@ -243,6 +243,9 @@ if (!resolveRes.ok) {
 }
 
 const resolveData = await resolveRes.json();
+const finalLink = resolveData.finalLink;
+
+        if (!finalLink) throw new Error("No finalLink returned.");
 
         // Show manual backup button
         resContainer.innerHTML = `
