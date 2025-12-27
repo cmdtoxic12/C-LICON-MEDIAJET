@@ -23,10 +23,9 @@ export default async function handler(req, res) {
     const data = await apiRes.json();
     const finalLink = data.url || data.result || data.data?.url;
 
-    if (!finalLink) return res.status(500).json({ error: "No link in response" });
+    if (!finalLink) return res.status(500).json({ error: "No media link found" });
 
     res.json({ finalLink });
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Resolve crashed" });
