@@ -258,12 +258,31 @@
 
             // 2. Try the automatic force-save
             try {
+        const response = await fetch(`https://download-all-in-one-lite.p.rapidapi.com/autolink?url=${encodeURIComponent(urlInput)}`, options);
+        const data = await response.json();
+        const finalLink = data.url || data.result || (data.data && data.data.url);
+
+        if (finalLink) {
+            // 1. Create a visible manual button
+            resContainer.innerHTML = `
+                <div style="margin-top:20px; padding:15px; background:rgba(74, 222, 128, 0.2); border:1px solid #4ade80; border-radius:15px;">
+                    <p style="margin:0 0 10px 0; font-size:0.8rem; color:#fff;">File is ready!</p>
+                    <a href="\( {finalLink}" download="MediaJet_Download. \){selectedFormat}" target="_blank" 
+                       style="display:block; background:#4ade80; color:black; padding:12px; border-radius:10px; text-decoration:none; font-weight:bold;">
+                       📥 CLICK TO SAVE ${selectedFormat.toUpperCase()}
+                    </a>
+                    <p style="margin-top:10px; font-size:0.7rem; color:#94a3b8;">If it opens in a new tab: Right-click/Long-press and 'Save Link As'</p>
+                </div>
+            `;
+
+            // 2. Try the automatic force-save (blob method)
+            try {
                 const fileRes = await fetch(finalLink);
                 const blob = await fileRes.blob();
                 const bUrl = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = bUrl;
-                a.download = `MediaJet_${Date.now()}.${selectedFormat}`;
+                a.download = `MediaJet_\( {Date.now()}. \){selectedFormat}`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -271,23 +290,22 @@
             } catch (blobError) {
                 console.warn("CORS blocked auto-fetch. User must use the manual button.");
             }
-            if (finalLink) {
-    // Instead of opening the link, redirect through your new Vercel proxy
-    const proxyUrl = `/api/proxy?url=${encodeURIComponent(finalLink)}`;
-    
-    // This will now trigger an actual download because of the 'attachment' header
-    window.location.href = proxyUrl;
-    
-    btn.innerText = "SUCCESS!";
+
+            // Optional: If you really want to use a proxy redirect here, add it AFTER the above
+            // const proxyUrl = `/api/proxy?url=${encodeURIComponent(finalLink)}`;
+            // window.location.href = proxyUrl;
+
+            btn.innerText = "SUCCESS!";
         } else {
-            throw new Error("No link found")
+            throw new Error("No download link found in API response");
+        }
     } catch (err) {
-        alert("Error: " + err.message);
+        alert("Error: " + (err.message || "Unknown error"));
         btn.innerText = "ERROR";
     } finally {
         btn.disabled = false;
         setTimeout(() => btn.innerText = "DOWNLOAD", 3000);
-    }
+            }
 }
   </script>
     <h1><b>©2025Copyright Anonymous</b></h1>
