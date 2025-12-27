@@ -243,24 +243,19 @@
                 const finalLink = data.url || data.link || data.result;
 
                 if (finalLink) {
-    // 1. Create a hidden 'a' element
-    const link = document.createElement('a');
-    link.href = finalLink;
-    
-    // 2. Set the 'download' attribute and file name
-    // This tells the browser: "Don't play this, save it!"
-    link.setAttribute('download', `MediaJet_${selectedPlatform}.${selectedFormat}`);
-    
-    // 3. Set target to _blank as a backup
-    link.target = '_blank';
-    
-    // 4. Append, Click, and Remove
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    btn.innerText = "SUCCESS!";
+    // Create a visible download button as a fallback
+    const resultDiv = document.createElement('div');
+    resultDiv.innerHTML = `
+        <a href="${finalLink}" download 
+           style="display:block; margin-top:20px; padding:15px; background:#4ade80; color:black; border-radius:12px; text-decoration:none; font-weight:bold;">
+           ✅ CLICK HERE TO SAVE ${selectedFormat.toUpperCase()}
+        </a>
+    `;
+    // Append it inside your glass card
+    document.querySelector('.glass-card').appendChild(resultDiv);
+    btn.innerText = "LINK READY!";
 }
+
  else {
                     throw new Error("No link found");
                 }
