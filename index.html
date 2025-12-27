@@ -243,19 +243,49 @@
                 const finalLink = data.url || data.link || data.result;
 
                 if (finalLink) {
-    // Create a visible download button as a fallback
-    const resultDiv = document.createElement('div');
-    resultDiv.innerHTML = `
-        <a href="${finalLink}" download 
-           style="display:block; margin-top:20px; padding:15px; background:#4ade80; color:black; border-radius:12px; text-decoration:none; font-weight:bold;">
-           ✅ CLICK HERE TO SAVE ${selectedFormat.toUpperCase()}
-        </a>
-    `;
-    // Append it inside your glass card
-    document.querySelector('.glass-card').appendChild(resultDiv);
-    btn.innerText = "LINK READY!";
+    btn.innerText = "STARTING DOWNLOAD...";
+    
+    try {
+        // 1. Fetch the file data directly
+        const response = await fetch(finalLink);
+        const blob = await response.blob();
+        
+        // 2. Create a local 'Blob' URL
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        // 3. Create a hidden link and trigger it
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `MediaJet_${selectedPlatform}_${Date.now()}.${selectedFormat}`;
+        
+        document.body.appendChild(link);
+        link.click();
+        
+        // 4. Cleanup
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+        
+        btn.innerText = "SUCCESS!";
+    } catch (e) {
+        console.error("Blob download failed, falling back to tab...", e);
+        // Fallback: If Blob fails (due to security), just open in new tab
+        window.open(finalLink, '_blank');
+        btn.innerText = "OPENED IN TAB";
+    }
 }
-
+     // Add a visible download button inside the card so the user can manually save
+const resultArea = document.getElementById('result-display') || document.createElement('div');
+resultArea.id = 'result-display';
+resultArea.innerHTML = `
+    <div style="margin-top:20px; padding:15px; background:rgba(74, 222, 128, 0.2); border:1px solid #4ade80; border-radius:15px;">
+        <p style="margin:0 0 10px 0; font-size:0.8rem;">Ready! If download didn't start:</p>
+        <a href="${finalLink}" download style="color:#4ade80; text-decoration:none; font-weight:bold; font-size:1.1rem;">
+            📥 CLICK HERE TO SAVE
+        </a>
+    </div>
+`;
+document.querySelector('.glass-card').appendChild(resultArea);
+        
  else {
                     throw new Error("No link found");
                 }
