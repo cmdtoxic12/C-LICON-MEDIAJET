@@ -2,11 +2,18 @@ import fetch from "node-fetch";
 
 export default async function handler(req, res) {
   const { url } = req.query;
+
   if (!url) return res.status(400).end();
 
-  const fileRes = await fetch(url);
-  res.setHeader("Content-Disposition", "attachment");
-  res.setHeader("Content-Type", fileRes.headers.get("content-type") || "application/octet-stream");
+  try {
+    const fileRes = await fetch(url);
 
-  fileRes.body.pipe(res);
+    res.setHeader("Content-Type", fileRes.headers.get("content-type") || "application/octet-stream");
+    res.setHeader("Content-Disposition", "attachment");
+
+    fileRes.body.pipe(res);
+  } catch (err) {
+    res.status(500).end("Proxy error");
+  }
 }
+
