@@ -272,7 +272,7 @@
         window.open(finalLink, '_blank');
         btn.innerText = "OPENED IN TAB";
     }
-}
+
      // Add a visible download button inside the card so the user can manually save
 const resultArea = document.getElementById('result-display') || document.createElement('div');
 resultArea.id = 'result-display';
@@ -285,7 +285,7 @@ resultArea.innerHTML = `
     </div>
 `;
 document.querySelector('.glass-card').appendChild(resultArea);
-        
+                }   
  else {
                     throw new Error("No link found");
                 }
