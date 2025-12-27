@@ -234,20 +234,19 @@ async function triggerDownload() {
     resContainer.innerHTML = "";
 
     try {
-        // Ask your backend to resolve the final media link
         const resolveRes = await fetch(`/api/resolve?url=${encodeURIComponent(urlInput)}`);
 
-if (!resolveRes.ok) {
-  const t = await resolveRes.text();
-  throw new Error("Resolve failed: " + t);
-}
+        if (!resolveRes.ok) {
+            const t = await resolveRes.text();
+            throw new Error("Resolve failed: " + t);
+        }
 
-const resolveData = await resolveRes.json();
-const finalLink = resolveData.finalLink;
+        const resolveData = await resolveRes.json();
+        const finalLink = resolveData.finalLink;
 
-        if (!finalLink) throw new Error("No finalLink returned.");
+        if (!finalLink) throw new Error("No download link returned.");
 
-        // Show manual backup button
+        // Show manual button
         resContainer.innerHTML = `
             <div style="margin-top:20px; padding:15px; background:rgba(74, 222, 128, 0.2); border:1px solid #4ade80; border-radius:15px;">
                 <p style="margin:0 0 10px 0; font-size:0.8rem; color:#fff;">File is ready!</p>
@@ -256,12 +255,12 @@ const finalLink = resolveData.finalLink;
                    📥 CLICK TO SAVE ${selectedFormat.toUpperCase()}
                 </a>
                 <p style="margin-top:10px; font-size:0.7rem; color:#94a3b8;">
-                    If it doesn’t download automatically, click the button above.
+                   If it doesn’t download automatically, click the button above.
                 </p>
             </div>
         `;
 
-        // Auto-trigger download via proxy
+        // Auto-download via proxy
         window.location.href = `/api/proxy?url=${encodeURIComponent(finalLink)}`;
 
         btn.innerText = "SUCCESS!";
@@ -273,4 +272,6 @@ const finalLink = resolveData.finalLink;
         setTimeout(() => btn.innerText = "DOWNLOAD", 3000);
     }
 }
-</script>
+        </script>
+    </body>
+</html>
