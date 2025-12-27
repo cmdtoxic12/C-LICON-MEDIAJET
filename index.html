@@ -216,64 +216,71 @@
         async function triggerDownload() {
     const urlInput = document.getElementById('videoUrl').value;
     const btn = document.querySelector('.extract-btn');
-    const statusMsg = document.getElementById('status-msg'); // Ensure this ID exists in your HTML
+    const statusMsg = document.getElementById('status-msg');
+    let finalLink; // Moved outside to be accessible in catch block
 
     if (!selectedPlatform || !urlInput) return alert("Select platform and paste link!");
 
     btn.innerText = "EXTRACTING...";
     btn.disabled = true;
+    if(statusMsg) statusMsg.innerText = "Searching for media...";
 
     const options = {
         method: 'GET',
         headers: {
-            'X-RapidAPI-Key': '66f5cf6778mshb00f72e9432debdp1971dfjsn00e4302cc7de', 
+            'X-RapidAPI-Key': 'YOUR_ACTUAL_KEY_HERE', 
             'X-RapidAPI-Host': 'download-all-in-one-lite.p.rapidapi.com'
         }
     };
 
     try {
-        // 1. Get the link from API
         const response = await fetch(`https://download-all-in-one-lite.p.rapidapi.com/autolink?url=${encodeURIComponent(urlInput)}`, options);
         const data = await response.json();
-        const finalLink = data.url || data.result || (data.data && data.data.url);
+        finalLink = data.url || data.result || (data.data && data.data.url);
 
         if (finalLink) {
             btn.innerText = "DOWNLOADING...";
+            if(statusMsg) statusMsg.innerText = "Fetching file data (this may take a moment)...";
             
-            // 2. THE FIX: Fetch file as a Blob to force download
+            // This part often triggers CORS errors on local files
             const fileResponse = await fetch(finalLink);
             const blob = await fileResponse.blob();
             
-            // 3. Create a local URL for the Blob
             const blobUrl = window.URL.createObjectURL(blob);
-            
-            // 4. Trigger the hidden download link
             const a = document.createElement('a');
             a.href = blobUrl;
             a.download = `MediaJet_${Date.now()}.${selectedFormat}`;
             document.body.appendChild(a);
             a.click();
             
-            // 5. Cleanup
             document.body.removeChild(a);
             window.URL.revokeObjectURL(blobUrl);
 
             btn.innerText = "SUCCESS!";
+            if(statusMsg) statusMsg.innerText = "Download started!";
         } else {
             throw new Error("Link not found");
         }
     } catch (err) {
-        console.error(err);
-        // Fallback: If Blob fetch is blocked by CORS, open in new tab as last resort
-        if (typeof finalLink !== 'undefined') window.open(finalLink, '_blank');
-        btn.innerText = "OPENED IN TAB";
+        console.warn("Force download blocked by CORS, opening in tab instead.");
+        if (finalLink) {
+            window.open(finalLink, '_blank');
+            btn.innerText = "OPENED IN TAB";
+            if(statusMsg) statusMsg.innerText = "CORS restricted: Saved to new tab.";
+        } else {
+            btn.innerText = "ERROR";
+            if(statusMsg) statusMsg.innerText = "Failed to find media.";
+        }
     } finally {
         btn.disabled = false;
-        setTimeout(() => { btn.innerText = "DOWNLOAD"; }, 3000);
+        setTimeout(() => { 
+            btn.innerText = "DOWNLOAD"; 
+            if(statusMsg) statusMsg.innerText = "";
+        }, 4000);
     }
 }
-    </script>
-    <h1><b>©Copyright <Anonymous></b></h1>
+  </script>
+    <h1><b>©2025Copyright Anonymous</b></h1>
 </body>
   </html>
   
