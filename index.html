@@ -271,8 +271,14 @@
             } catch (blobError) {
                 console.warn("CORS blocked auto-fetch. User must use the manual button.");
             }
-
-            btn.innerText = "SUCCESS!";
+            if (finalLink) {
+    // Instead of opening the link, redirect through your new Vercel proxy
+    const proxyUrl = `/api/proxy?url=${encodeURIComponent(finalLink)}`;
+    
+    // This will now trigger an actual download because of the 'attachment' header
+    window.location.href = proxyUrl;
+    
+    btn.innerText = "SUCCESS!";
         } else {
             throw new Error("No link found");
         }
