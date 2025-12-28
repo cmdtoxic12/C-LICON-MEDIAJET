@@ -51,7 +51,8 @@
             font-size: 2.8rem;
             margin: 0;
             background: linear-gradient(to bottom, #fff, #94a3b8);
-            -webkit-background-clip: text;
+           -webkit-background-clip: text;
+  background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 800;
         }
@@ -197,7 +198,13 @@
     <script src="https://js.puter.com/v2/"></script>
 <script>
     // Replace your standard fetch with this:
-    const response = await puter.net.fetch(engineUrl, { ... });
+    const response = await puter.net.fetch("https://c-licon-mediajet.vercel.app//api/retrieve", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ url: urlInput })
+});
 </script>
     <script>
 let selectedPlatform = "";
