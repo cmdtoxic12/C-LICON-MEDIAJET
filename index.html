@@ -227,40 +227,37 @@ async function triggerDownload() {
     const engineUrl = "https://api.cobalt.tools/api/json"; 
 
     try {
-        const response = await fetch(engineUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            },
-            body: JSON.stringify({
-                url: urlInput,
-                videoQuality: "720",
-                downloadMode: "auto"
-            })
-        });
+    const response = await fetch(engineUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: urlInput })
+    });
 
-        const data = await response.json();
+    // CHECK 1: Did the server respond at all?
+    if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+    }
 
-        // Check if the engine successfully retrieved a URL
-        if (data.url) {
-            resultDisplay.innerHTML = `
-                <div style="margin-top:20px; padding:15px; border:1px solid #4ade80; border-radius:15px; background:rgba(74,222,128,0.1);">
-                    <p style="color:#fff; font-size:0.8rem; margin-bottom:10px;">Media Retrieved!</p>
-                    <a href="${data.url}" target="_blank" 
-                       style="display:block; background:#4ade80; color:black; text-align:center; padding:12px; border-radius:10px; text-decoration:none; font-weight:bold;">
-                       📥 DOWNLOAD FILE
-                    </a>
-                </div>
-            `;
-            btn.innerText = "SUCCESS!";
-        } else {
-            throw new Error("The engine could not retrieve a link. Try a different URL.");
-        }
-    } catch (err) {
-        console.error("Retrieval Error:", err);
-        alert("Retrieval failed: " + err.message);
-        btn.innerText = "ERROR";
+    const data = await response.json();
+    
+    // CHECK 2: Did we get a URL back?
+    if (data && data.url) {
+        // ... show your download button ...
+    } else {
+        throw new Error("The engine returned an empty link.");
+    }
+
+} catch (err) {
+    console.error("Fetch Error Detail:", err);
+    
+    // CUSTOM MESSAGE: Helps you debug
+    if (err.message.includes("Failed to fetch")) {
+        alert("Network Error: Please check your internet or disable Ad-Blockers.");
+    } else {
+        alert("Retrieval Error: " + err.message);
+    }
+    btn.innerText = "ERROR";
+}
     } finally {
         btn.disabled = false;
         setTimeout(() => { if(btn.innerText !== "SUCCESS!") btn.innerText = "DOWNLOAD"; }, 4000);
