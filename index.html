@@ -219,50 +219,61 @@ function setFormat(format) {
 }
 
 async function triggerDownload(event) {
-    if (event) event.preventDefault(); // This stops the page from reloading
-    // 
-    const urlInput = document.getElementById('videoUrl').value;
-    const btn = document.querySelector('.extract-btn');
-    
-    // 1. Basic Validation
-    if (!urlInput) return alert("Please paste a link first!");
+  if (event) event.preventDefault();
 
-    btn.innerText = "RETRIEVING...";
-    btn.disabled = true;
+  const urlInput = document.getElementById("videoUrl").value.trim();
+  const btn = document.querySelector(".extract-btn");
 
-    try {
-        // 2. Use a direct HTTPS engine (Cobalt is a reliable open-source choice)
-        const response = await fetch("https://api.cobalt.tools/api/json", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            },
-            body: JSON.stringify({ url: urlInput })
-        });
+  if (!urlInput) {
+    alert("Please paste a link first!");
+    return;
+  }
 
-        // 3. Check if server actually responded
-        if (!response.ok) throw new Error("Retrieval engine is currently busy.");
+  btn.innerText = "RETRIEVING...";
+  btn.disabled = true;
 
-        const data = await response.json();
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
-        if (data.url) {
-            // SUCCESS: Display the link retrieved from the engine
-            showDownloadButton(data.url); 
-            btn.innerText = "SUCCESS!";
-        } else {
-            throw new Error("Could not find a video at that URL.");
-        }
-    } catch (err) {
-        console.error("Fetch Error:", err);
-        // Alert the user about ad-blockers if fetch fails
-        alert("Network Error: Please disable Ad-Blockers or check your connection.");
-        btn.innerText = "ERROR";
-    } finally {
-        btn.disabled = false;
-        setTimeout(() => btn.innerText = "DOWNLOAD", 4000);
+    const response = await fetch("/api/retrieve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: urlInput }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || "Retrieval failed");
     }
+
+    const data = await response.json();
+
+    if (!data.url) throw new Error("No downloadable video found");
+
+    showDownloadButton(data.url);
+    btn.innerText = "SUCCESS!";
+
+  } catch (err) {
+    console.error(err);
+
+    if (err.name === "AbortError") {
+      alert("Request timed out. Try again.");
+    } else {
+      alert(err.message || "Something went wrong.");
+    }
+
+    btn.innerText = "ERROR";
+
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => (btn.innerText = "DOWNLOAD"), 4000);
+  }
 }
-    </script>
+        </script>
+    <h4><b>By Anonymous C-Licon</b></h4>
     </body>
 </html>
