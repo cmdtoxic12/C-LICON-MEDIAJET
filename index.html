@@ -213,7 +213,9 @@ function setFormat(format) {
     document.getElementById(`${format}-btn`).classList.add('active');
 }
 
-async function triggerDownload() {
+async function triggerDownload(event) {
+    if (event) event.preventDefault(); // This stops the page from reloading
+    // 
     const urlInput = document.getElementById('videoUrl').value;
     const btn = document.querySelector('.extract-btn');
     
