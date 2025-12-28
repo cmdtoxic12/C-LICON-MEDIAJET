@@ -196,13 +196,27 @@
     </div>
 
     <script src="https://js.puter.com/v2/"></script>
-<script>
+<script type="module">
     // Replace your standard fetch with this:
-    const response = await puter.net.fetch("/api/retrieve", {
+    const response = await fetch("/api/retrieve", {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ url: urlInput })
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ url: urlInput }) // urlInput = your TikTok/video URL
 });
+
+if (!response.ok) {
+  const errorData = await response.json().catch(() => ({}));
+  throw new Error(errorData.error || "Retrieval failed");
+}
+
+const data = await response.json();
+
+if (!data.url) throw new Error("No video found");
+
+// data.url now contains the downloadable video link
+console.log("Video URL:", data.url);
 </script>
     <script>
 let selectedPlatform = "";
