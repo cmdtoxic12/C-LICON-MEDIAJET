@@ -214,62 +214,56 @@ function setFormat(format) {
 }
 
 async function triggerDownload() {
-    const urlInput = document.getElementById('videoUrl').value.trim();
+    const urlInput = document.getElementById('videoUrl').value;
     const btn = document.querySelector('.extract-btn');
-    let resContainer = document.getElementById('result-container');
+    const resultDisplay = document.getElementById('result-container') || document.createElement('div');
 
-    if (!resContainer) {
-        resContainer = document.createElement('div');
-        resContainer.id = 'result-container';
-        document.querySelector('.glass-card').appendChild(resContainer);
-    }
+    if (!urlInput) return alert("Please paste a link first!");
 
-    if (!selectedPlatform || !urlInput) {
-        alert("Select platform and paste link!");
-        return;
-    }
-
-    btn.innerText = "EXTRACTING...";
+    btn.innerText = "RETRIEVING FROM ENGINE...";
     btn.disabled = true;
-    resContainer.innerHTML = "";
+
+    // Use a powerful extraction engine (e.g., Cobalt or a similar open-source API)
+    const engineUrl = "https://api.cobalt.tools/api/json"; 
 
     try {
-        const resolveRes = await fetch(`/api/resolve?url=${encodeURIComponent(urlInput)}`);
+        const response = await fetch(engineUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            body: JSON.stringify({
+                url: urlInput,
+                videoQuality: "720",
+                downloadMode: "auto"
+            })
+        });
 
-        if (!resolveRes.ok) {
-            const t = await resolveRes.text();
-            throw new Error("Resolve failed: " + t);
+        const data = await response.json();
+
+        // Check if the engine successfully retrieved a URL
+        if (data.url) {
+            resultDisplay.innerHTML = `
+                <div style="margin-top:20px; padding:15px; border:1px solid #4ade80; border-radius:15px; background:rgba(74,222,128,0.1);">
+                    <p style="color:#fff; font-size:0.8rem; margin-bottom:10px;">Media Retrieved!</p>
+                    <a href="${data.url}" target="_blank" 
+                       style="display:block; background:#4ade80; color:black; text-align:center; padding:12px; border-radius:10px; text-decoration:none; font-weight:bold;">
+                       📥 DOWNLOAD FILE
+                    </a>
+                </div>
+            `;
+            btn.innerText = "SUCCESS!";
+        } else {
+            throw new Error("The engine could not retrieve a link. Try a different URL.");
         }
-
-        const resolveData = await resolveRes.json();
-        const finalLink = resolveData.finalLink;
-
-        if (!finalLink) throw new Error("No download link returned.");
-
-        // Show manual button
-        resContainer.innerHTML = `
-            <div style="margin-top:20px; padding:15px; background:rgba(74, 222, 128, 0.2); border:1px solid #4ade80; border-radius:15px;">
-                <p style="margin:0 0 10px 0; font-size:0.8rem; color:#fff;">File is ready!</p>
-                <a href="/api/proxy?url=${encodeURIComponent(finalLink)}" 
-                   style="display:block; background:#4ade80; color:black; padding:12px; border-radius:10px; text-decoration:none; font-weight:bold;">
-                   📥 CLICK TO SAVE ${selectedFormat.toUpperCase()}
-                </a>
-                <p style="margin-top:10px; font-size:0.7rem; color:#94a3b8;">
-                   If it doesn’t download automatically, click the button above.
-                </p>
-            </div>
-        `;
-
-        // Auto-download via proxy
-        window.location.href = `/api/proxy?url=${encodeURIComponent(finalLink)}`;
-
-        btn.innerText = "SUCCESS!";
     } catch (err) {
-        alert("Error: " + err.message);
+        console.error("Retrieval Error:", err);
+        alert("Retrieval failed: " + err.message);
         btn.innerText = "ERROR";
     } finally {
         btn.disabled = false;
-        setTimeout(() => btn.innerText = "DOWNLOAD", 3000);
+        setTimeout(() => { if(btn.innerText !== "SUCCESS!") btn.innerText = "DOWNLOAD"; }, 4000);
     }
 }
         </script>
