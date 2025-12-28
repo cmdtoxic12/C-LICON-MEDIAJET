@@ -257,7 +257,6 @@ async function triggerDownload() {
         alert("Retrieval Error: " + err.message);
     }
     btn.innerText = "ERROR";
-}
     } finally {
         btn.disabled = false;
         setTimeout(() => { if(btn.innerText !== "SUCCESS!") btn.innerText = "DOWNLOAD"; }, 4000);
