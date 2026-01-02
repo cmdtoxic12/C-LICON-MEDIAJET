@@ -25,34 +25,31 @@
     <div class="w-full max-w-xl">
         <header class="text-center mb-10">
             <h1 class="text-4xl font-extrabold mb-2 tracking-tight">Snappy<span class="text-cyan-400">Down</span></h1>
-            <p class="text-slate-400">High-Quality TikTok Video & MP3 Downloader</p>
+            <p class="text-slate-400">Vercel Powered TikTok Media Downloader</p>
         </header>
 
-        <!-- Main Input Card -->
-        <div class="glass p-8 rounded-3xl shadow-2xl mb-8">
+        <main class="glass p-8 rounded-3xl shadow-2xl mb-8">
             <div class="space-y-4">
-                <input type="text" id="urlInput" placeholder="Paste TikTok video link here..." 
+                <input type="text" id="urlInput" placeholder="Paste TikTok link here..." 
                     class="w-full bg-slate-900/50 border border-slate-700 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all text-white placeholder:text-slate-500">
                 
                 <button onclick="fetchVideo()" id="mainBtn" class="w-full py-4 rounded-2xl tiktok-btn font-bold text-lg hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-cyan-500/20">
-                    Extract Media
+                    Get Media
                 </button>
             </div>
 
-            <!-- Loading UI -->
             <div id="loading" class="hidden mt-8 flex flex-col items-center">
                 <div class="loader w-10 h-10 border-4 border-slate-700 rounded-full mb-3"></div>
-                <p class="text-slate-400 text-sm">Querying tiktok-api23...</p>
+                <p class="text-slate-400 text-sm">Processing TikTok Video...</p>
             </div>
 
-            <!-- Result UI -->
             <div id="results" class="hidden mt-8 fade-in">
                 <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-700">
                     <div class="flex gap-5 mb-6">
-                        <img id="thumb" class="w-24 h-36 object-cover rounded-xl shadow-xl border border-white/10" src="" alt="">
-                        <div class="flex-1 flex flex-col justify-center">
-                            <h3 id="title" class="font-bold text-slate-100 line-clamp-2 leading-snug mb-2 text-sm"></h3>
-                            <p id="author" class="text-cyan-400 text-xs font-medium flex items-center gap-2">
+                        <img id="thumb" class="w-24 h-36 object-cover rounded-xl shadow-xl border border-white/10" src="" alt="Thumbnail">
+                        <div class="flex-1 flex flex-col justify-center min-w-0">
+                            <h3 id="title" class="font-bold text-slate-100 line-clamp-2 leading-snug mb-2 text-sm italic"></h3>
+                            <p id="authorDisplay" class="text-cyan-400 text-xs font-medium flex items-center gap-2">
                                 <i class="fab fa-tiktok"></i>
                                 <span id="authorName"></span>
                             </p>
@@ -60,53 +57,47 @@
                     </div>
                     
                     <div class="grid grid-cols-1 gap-3">
-                        <button onclick="downloadFile('v')" class="flex items-center justify-center gap-3 bg-white/10 text-white py-3 rounded-xl font-bold hover:bg-white/20 transition-all">
-                            <i class="fas fa-video"></i> No Watermark Video
-                        </button>
-                        <button onclick="downloadFile('a')" class="flex items-center justify-center gap-3 bg-cyan-500/10 text-cyan-400 py-3 rounded-xl font-bold hover:bg-cyan-500/20 transition-all">
-                            <i class="fas fa-music"></i> Download MP3
-                        </button>
+                        <a id="vDownload" href="#" target="_blank" class="flex items-center justify-center gap-3 bg-white/10 text-white py-3 rounded-xl font-bold hover:bg-white/20 transition-all">
+                            <i class="fas fa-video"></i> Video (No Watermark)
+                        </a>
+                        <a id="aDownload" href="#" target="_blank" class="flex items-center justify-center gap-3 bg-cyan-500/10 text-cyan-400 py-3 rounded-xl font-bold hover:bg-cyan-500/20 transition-all">
+                            <i class="fas fa-music"></i> Download Audio
+                        </a>
                     </div>
                 </div>
             </div>
             
             <p id="error" class="hidden mt-6 text-red-400 text-center text-sm font-medium p-3 bg-red-400/10 rounded-xl border border-red-400/20"></p>
-        </div>
+        </main>
 
-        <!-- History List -->
         <section id="historyContainer" class="w-full glass rounded-3xl p-6 hidden fade-in">
             <div class="flex items-center justify-between mb-4 px-2">
                 <h2 class="text-sm font-bold flex items-center gap-2 text-slate-300 uppercase tracking-wider">
-                    <i class="fas fa-history text-slate-500"></i>
-                    Recent Downloads
+                    <i class="fas fa-history text-slate-500"></i> History
                 </h2>
-                <button onclick="clearHistory()" class="text-[10px] text-slate-500 hover:text-red-400 font-bold uppercase">
-                    Clear
-                </button>
+                <button onclick="clearHistory()" class="text-[10px] text-slate-500 hover:text-red-400 font-bold uppercase">Clear All</button>
             </div>
             <div id="historyList" class="space-y-3 max-h-64 overflow-y-auto pr-1"></div>
         </section>
 
         <footer class="mt-12 text-center text-slate-500 text-[10px] uppercase tracking-widest">
-            <p>&copy; 2026 SnappyDown Tool. Powered by tiktok-api23.</p>
+            <p>&copy; 2026 SnappyDown - tiktok-api23 v2.0</p>
         </footer>
     </div>
 
     <script>
-        let currentMedia = { video: null, audio: null };
-
         document.addEventListener('DOMContentLoaded', updateHistoryUI);
 
         async function fetchVideo() {
-            const urlInput = document.getElementById('urlInput');
-            const url = urlInput.value.trim();
+            const input = document.getElementById('urlInput');
+            const url = input.value.trim();
             const results = document.getElementById('results');
             const loader = document.getElementById('loading');
             const error = document.getElementById('error');
             const btn = document.getElementById('mainBtn');
 
             if(!url || !url.includes('tiktok.com')) {
-                showError("Please enter a valid TikTok URL.");
+                showError("Please paste a valid TikTok link.");
                 return;
             }
 
@@ -129,14 +120,14 @@
                     document.getElementById('authorName').innerText = data.author;
                     document.getElementById('thumb').src = data.thumbnail;
                     
-                    // Store links globally for the download buttons
-                    currentMedia.video = data.video_url;
-                    currentMedia.audio = data.audio_url;
+                    // Set href and ensure target="_blank"
+                    document.getElementById('vDownload').href = data.video_url;
+                    document.getElementById('aDownload').href = data.audio_url;
                     
                     results.classList.remove('hidden');
                     saveToHistory(data);
                 } else {
-                    throw new Error(data.error || "Processing failed.");
+                    throw new Error(data.error || "Failed to fetch media.");
                 }
             } catch (err) {
                 showError(err.message);
@@ -146,17 +137,9 @@
             }
         }
 
-        function downloadFile(type) {
-            const link = type === 'v' ? currentMedia.video : currentMedia.audio;
-            if (link) {
-                window.open(link, '_blank');
-            } else {
-                showError("Media link not available for this video.");
-            }
-        }
-
         function saveToHistory(item) {
             let history = JSON.parse(localStorage.getItem('snappy_history') || '[]');
+            // Filter out existing entries with same title to avoid duplicates
             history = history.filter(h => h.title !== item.title).slice(0, 9);
             history.unshift(item);
             localStorage.setItem('snappy_history', JSON.stringify(history));
@@ -175,15 +158,15 @@
 
             container.classList.remove('hidden');
             list.innerHTML = history.map(item => `
-                <div class="flex items-center gap-3 p-3 bg-slate-900/40 rounded-xl border border-white/5">
-                    <img src="${item.thumbnail}" class="w-10 h-10 object-cover rounded-lg border border-white/10" alt="">
+                <div class="flex items-center gap-3 p-3 bg-slate-900/40 rounded-xl border border-white/5 hover:border-white/10 transition-all">
+                    <img src="${item.thumbnail}" class="w-10 h-10 object-cover rounded-lg" alt="">
                     <div class="flex-1 min-w-0">
                         <p class="text-xs font-bold truncate text-slate-200">${item.title}</p>
                         <p class="text-[10px] text-cyan-400">${item.author}</p>
                     </div>
-                    <div class="flex gap-1">
-                        <a href="${item.video_url}" target="_blank" class="p-2 text-slate-400 hover:text-white"><i class="fas fa-video"></i></a>
-                        <a href="${item.audio_url}" target="_blank" class="p-2 text-slate-400 hover:text-white"><i class="fas fa-music"></i></a>
+                    <div class="flex gap-2">
+                        <a href="${item.video_url}" target="_blank" class="text-slate-400 hover:text-white"><i class="fas fa-video"></i></a>
+                        <a href="${item.audio_url}" target="_blank" class="text-slate-400 hover:text-white"><i class="fas fa-music"></i></a>
                     </div>
                 </div>
             `).join('');
