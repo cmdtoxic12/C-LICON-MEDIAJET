@@ -15,8 +15,6 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
@@ -25,43 +23,37 @@
 <body class="flex flex-col items-center p-6 py-12">
 
     <div class="w-full max-w-xl">
-        <div class="text-center mb-10">
+        <header class="text-center mb-10">
             <h1 class="text-4xl font-extrabold mb-2 tracking-tight">Snappy<span class="text-cyan-400">Down</span></h1>
-            <p class="text-slate-400">Fast, Serverless TikTok Media Downloader</p>
-        </div>
+            <p class="text-slate-400">High-Quality TikTok Video & MP3 Downloader</p>
+        </header>
 
+        <!-- Main Input Card -->
         <div class="glass p-8 rounded-3xl shadow-2xl mb-8">
             <div class="space-y-4">
-                <div class="relative">
-                    <input type="text" id="urlInput" placeholder="Paste TikTok video link here..." 
-                        class="w-full bg-slate-900/50 border border-slate-700 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all text-white placeholder:text-slate-500">
-                </div>
+                <input type="text" id="urlInput" placeholder="Paste TikTok video link here..." 
+                    class="w-full bg-slate-900/50 border border-slate-700 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all text-white placeholder:text-slate-500">
                 
-                <button onclick="fetchVideo()" class="w-full py-4 rounded-2xl tiktok-btn font-bold text-lg hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-cyan-500/20">
+                <button onclick="fetchVideo()" id="mainBtn" class="w-full py-4 rounded-2xl tiktok-btn font-bold text-lg hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-cyan-500/20">
                     Extract Media
                 </button>
             </div>
 
-            <!-- Loading State -->
+            <!-- Loading UI -->
             <div id="loading" class="hidden mt-8 flex flex-col items-center">
                 <div class="loader w-10 h-10 border-4 border-slate-700 rounded-full mb-3"></div>
-                <p class="text-slate-400 text-sm">Processing link on Vercel...</p>
+                <p class="text-slate-400 text-sm">Processing via Cloud API...</p>
             </div>
 
-            <!-- Results Display -->
+            <!-- Result UI -->
             <div id="results" class="hidden mt-8 fade-in">
                 <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-700">
                     <div class="flex gap-5 mb-6">
-                        <div class="relative flex-shrink-0">
-                            <img id="thumb" class="w-28 h-40 object-cover rounded-xl shadow-2xl border border-white/10" src="" alt="Video Thumbnail">
-                            <div class="absolute inset-0 flex items-center justify-center bg-black/20 rounded-xl">
-                                <i class="fas fa-play text-white/80 text-2xl"></i>
-                            </div>
-                        </div>
+                        <img id="thumb" class="w-24 h-36 object-cover rounded-xl shadow-xl border border-white/10" src="" alt="">
                         <div class="flex-1 flex flex-col justify-center">
-                            <h3 id="title" class="font-bold text-slate-100 line-clamp-2 leading-snug mb-2"></h3>
-                            <p id="author" class="text-cyan-400 text-sm font-medium flex items-center gap-2">
-                                <i class="fab fa-tiktok text-xs"></i>
+                            <h3 id="title" class="font-bold text-slate-100 line-clamp-2 leading-snug mb-2 text-sm"></h3>
+                            <p id="author" class="text-cyan-400 text-xs font-medium flex items-center gap-2">
+                                <i class="fab fa-tiktok"></i>
                                 <span id="authorName"></span>
                             </p>
                         </div>
@@ -69,12 +61,10 @@
                     
                     <div class="grid grid-cols-1 gap-3">
                         <a id="vLink" href="#" target="_blank" class="flex items-center justify-center gap-3 bg-white/10 text-white py-3 rounded-xl font-bold hover:bg-white/20 transition-all">
-                            <i class="fas fa-download"></i>
-                            Download Video (No Watermark)
+                            <i class="fas fa-video"></i> No Watermark Video
                         </a>
                         <a id="aLink" href="#" target="_blank" class="flex items-center justify-center gap-3 bg-cyan-500/10 text-cyan-400 py-3 rounded-xl font-bold hover:bg-cyan-500/20 transition-all">
-                            <i class="fas fa-music"></i>
-                            Download Audio (MP3)
+                            <i class="fas fa-music"></i> Download MP3
                         </a>
                     </div>
                 </div>
@@ -83,29 +73,26 @@
             <p id="error" class="hidden mt-6 text-red-400 text-center text-sm font-medium p-3 bg-red-400/10 rounded-xl border border-red-400/20"></p>
         </div>
 
-        <!-- History Section -->
-        <div id="historyContainer" class="w-full glass rounded-3xl p-6 hidden fade-in">
+        <!-- History List -->
+        <section id="historyContainer" class="w-full glass rounded-3xl p-6 hidden fade-in">
             <div class="flex items-center justify-between mb-4 px-2">
-                <h2 class="text-lg font-bold flex items-center gap-2">
-                    <i class="fas fa-history text-slate-400"></i>
-                    Recent History
+                <h2 class="text-sm font-bold flex items-center gap-2 text-slate-300 uppercase tracking-wider">
+                    <i class="fas fa-history text-slate-500"></i>
+                    Recent Downloads
                 </h2>
-                <button onclick="clearHistory()" class="text-xs text-slate-500 hover:text-red-400 transition-colors">
-                    Clear All
+                <button onclick="clearHistory()" class="text-[10px] text-slate-500 hover:text-red-400 font-bold uppercase">
+                    Clear
                 </button>
             </div>
-            <div id="historyList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
-                <!-- History Items Inject Here -->
-            </div>
-        </div>
+            <div id="historyList" class="space-y-3 max-h-64 overflow-y-auto pr-1"></div>
+        </section>
 
-        <footer class="mt-10 text-center text-slate-500 text-xs">
-            <p>Paste a link to see the downloader in action. Note: Ensure your Vercel API is configured with a real provider for live content.</p>
+        <footer class="mt-12 text-center text-slate-500 text-[10px] uppercase tracking-widest">
+            <p>&copy; 2026 SnappyDown Tool. Personal Use Only.</p>
         </footer>
     </div>
 
     <script>
-        // Load history on startup
         document.addEventListener('DOMContentLoaded', updateHistoryUI);
 
         async function fetchVideo() {
@@ -114,17 +101,14 @@
             const results = document.getElementById('results');
             const loader = document.getElementById('loading');
             const error = document.getElementById('error');
+            const btn = document.getElementById('mainBtn');
 
-            if(!url) {
-                showError("Please paste a valid link first.");
-                return;
-            }
-
-            if(!url.includes('tiktok.com')) {
+            if(!url || !url.includes('tiktok.com')) {
                 showError("Please enter a valid TikTok URL.");
                 return;
             }
 
+            btn.disabled = true;
             results.classList.add('hidden');
             error.classList.add('hidden');
             loader.classList.remove('hidden');
@@ -136,52 +120,32 @@
                     body: JSON.stringify({ url })
                 });
 
-                if (!response.ok) throw new Error("Server responded with an error.");
-
                 const data = await response.json();
 
                 if (data.success) {
-                    // Update UI
                     document.getElementById('title').innerText = data.title;
                     document.getElementById('authorName').innerText = data.author;
                     document.getElementById('thumb').src = data.thumbnail;
                     document.getElementById('vLink').href = data.video_url;
                     document.getElementById('aLink').href = data.audio_url;
                     
-                    loader.classList.add('hidden');
                     results.classList.remove('hidden');
-
-                    // Save to History
                     saveToHistory(data);
                 } else {
-                    throw new Error(data.error || "Could not fetch video details.");
+                    throw new Error(data.error || "Processing failed.");
                 }
             } catch (err) {
                 showError(err.message);
             } finally {
                 loader.classList.add('hidden');
+                btn.disabled = false;
             }
         }
 
         function saveToHistory(item) {
             let history = JSON.parse(localStorage.getItem('snappy_history') || '[]');
-            
-            // Remove duplicates of the same title
-            history = history.filter(h => h.title !== item.title);
-            
-            // Add to front
-            history.unshift({
-                title: item.title,
-                author: item.author,
-                thumbnail: item.thumbnail,
-                video_url: item.video_url,
-                audio_url: item.audio_url,
-                timestamp: Date.now()
-            });
-
-            // Keep only last 10
-            history = history.slice(0, 10);
-            
+            history = history.filter(h => h.title !== item.title).slice(0, 9);
+            history.unshift(item);
             localStorage.setItem('snappy_history', JSON.stringify(history));
             updateHistoryUI();
         }
@@ -198,19 +162,15 @@
 
             container.classList.remove('hidden');
             list.innerHTML = history.map(item => `
-                <div class="flex items-center gap-3 p-3 bg-slate-900/40 rounded-xl border border-white/5 hover:border-cyan-500/30 transition-all">
-                    <img src="${item.thumbnail}" class="w-10 h-10 object-cover rounded-lg" alt="">
+                <div class="flex items-center gap-3 p-3 bg-slate-900/40 rounded-xl border border-white/5">
+                    <img src="${item.thumbnail}" class="w-10 h-10 object-cover rounded-lg border border-white/10" alt="">
                     <div class="flex-1 min-w-0">
                         <p class="text-xs font-bold truncate text-slate-200">${item.title}</p>
-                        <p class="text-[10px] text-cyan-400 font-medium">${item.author}</p>
+                        <p class="text-[10px] text-cyan-400">${item.author}</p>
                     </div>
-                    <div class="flex gap-2">
-                        <a href="${item.video_url}" target="_blank" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs" title="Video">
-                            <i class="fas fa-video"></i>
-                        </a>
-                        <a href="${item.audio_url}" target="_blank" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs" title="Audio">
-                            <i class="fas fa-music"></i>
-                        </a>
+                    <div class="flex gap-1">
+                        <a href="${item.video_url}" target="_blank" class="p-2 text-slate-400 hover:text-white"><i class="fas fa-video"></i></a>
+                        <a href="${item.audio_url}" target="_blank" class="p-2 text-slate-400 hover:text-white"><i class="fas fa-music"></i></a>
                     </div>
                 </div>
             `).join('');
