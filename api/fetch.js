@@ -1,19 +1,15 @@
-// Vercel Serverless Function
+// Finalized TikTok Downloader Serverless API for Vercel
 // Path: api/fetch.js
 
 export default async function handler(req, res) {
-    // Add CORS headers for Vercel
+    // Standard CORS configuration
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-    res.setHeader(
-        'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-    );
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
 
     if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
+        return res.status(200).end();
     }
 
     if (req.method !== 'POST') {
@@ -22,26 +18,58 @@ export default async function handler(req, res) {
 
     const { url } = req.body;
 
-    if (!url) {
-        return res.status(400).json({ error: 'URL is required' });
+    if (!url || !url.includes('tiktok.com')) {
+        return res.status(400).json({ error: 'Please provide a valid TikTok link.' });
     }
 
+    /**
+     * TIKWM API via RapidAPI
+     * Get your key: https://rapidapi.com/tikwm-tikwm-default/api/tiktok-downloader-download-tiktok-videos-without-watermark
+     * Paste your key below:
+     */
+    const RAPID_API_KEY = 'YOUR_RAPID_API_KEY_HERE'; 
+    const RAPID_API_HOST = 'tiktok-downloader-download-tiktok-videos-without-watermark.p.rapidapi.com';
+
     try {
-        // Here you would integrate a real TikTok API.
-        // For a real production app on Vercel, I recommend using a RapidAPI TikTok endpoint
-        // as serverless functions have execution limits (10-60s) and can't run large binaries easily.
+        // Fallback for demo purposes if key is missing
+        if (RAPID_API_KEY === 'YOUR_RAPID_API_KEY_HERE') {
+            return res.status(200).json({
+                success: true,
+                title: "Example: Nature is beautiful 🌿 #foryou",
+                author: "@travel_demo",
+                thumbnail: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
+                video_url: "https://www.w3schools.com/html/mov_bbb.mp4",
+                audio_url: "https://www.w3schools.com/html/horse.mp3",
+            });
+        }
 
-        await new Promise(resolve => setTimeout(resolve, 800)); // Simulate work
-
-        res.status(200).json({
-            success: true,
-            title: "Vercel Hosted TikTok Downloader Preview",
-            author: "@digital_creator",
-            thumbnail: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400",
-            video_url: "https://www.w3schools.com/html/mov_bbb.mp4",
-            audio_url: "https://www.w3schools.com/html/horse.mp3",
+        const apiUrl = `https://${RAPID_API_HOST}/vid/index?url=${encodeURIComponent(url)}`;
+        
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'x-rapidapi-key': RAPID_API_KEY,
+                'x-rapidapi-host': RAPID_API_HOST
+            }
         });
+        
+        const result = await response.json();
+
+        if (result.code === 0 && result.data) {
+            return res.status(200).json({
+                success: true,
+                title: result.data.title || "TikTok Video",
+                author: `@${result.data.author.unique_id}`,
+                thumbnail: result.data.cover,
+                video_url: result.data.play,
+                audio_url: result.data.music,
+            });
+        } else {
+            return res.status(400).json({ error: result.msg || "The video is private, deleted, or region-locked." });
+        }
+
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
+        console.error('API Handler Error:', error);
+        res.status(500).json({ error: 'Server error processing the TikTok link.' });
     }
 }
