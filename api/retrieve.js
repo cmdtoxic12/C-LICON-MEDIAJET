@@ -22,9 +22,16 @@ export default async function handler(req, res) {
     clearTimeout(timeout);
 
     if (!response.ok) {
-      const text = await response.text();
-      return res.status(502).json({ error: "Upstream failed", details: text });
-    }
+  const text = await response.text();
+  console.error("Upstream status:", response.status);
+  console.error("Upstream body:", text);
+
+  return res.status(502).json({
+    error: "Upstream failed",
+    status: response.status,
+    details: text.slice(0, 500)
+  });
+}
 
     const data = await response.json();
 
