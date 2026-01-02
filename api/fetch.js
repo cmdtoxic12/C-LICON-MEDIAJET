@@ -30,20 +30,6 @@ export default async function handler(req, res) {
     const RAPID_API_KEY = '66f5cf6778mshb00f72e9432debdp1971dfjsn00e4302cc7de'; 
     const RAPID_API_HOST = 'tiktok-api23.p.rapidapi.com';
 
-    try {
-        // If you still have the placeholder, we show the demo to prevent a 500 error.
-        // Once you replace 'YOUR_RAPID_API_KEY_HERE', this block will be skipped.
-        if (RAPID_API_KEY === '66f5cf6778mshb00f72e9432debdp1971dfjsn00e4302cc7de') {
-            return res.status(200).json({
-                success: true,
-                title: "[DEMO MODE] Enter your API Key in api/fetch.js to see real content",
-                author: "@system_notice",
-                thumbnail: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400",
-                video_url: "https://www.w3schools.com/html/mov_bbb.mp4",
-                audio_url: "https://www.w3schools.com/html/horse.mp3",
-            });
-        }
-
         const apiUrl = `https://${RAPID_API_HOST}/api/video/info?url=${encodeURIComponent(url)}`;
         
         const response = await fetch(apiUrl, {
