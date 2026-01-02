@@ -4,42 +4,38 @@ export default async function handler(req, res) {
   const { url } = req.body || {};
   if (!url) return res.status(400).json({ error: "Missing URL" });
 
-  try {
-    console.log("Sending request to Cobalt for URL:", url);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
+  try {
     const response = await fetch("https://api.cobalt.tools/api/json", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "User-Agent": "Mozilla/5.0" // sometimes helps
+        "User-Agent": "Mozilla/5.0"
       },
-      body: JSON.stringify({ url })
+      body: JSON.stringify({ url }),
+      signal: controller.signal
     });
 
-    console.log("Cobalt response status:", response.status);
+    clearTimeout(timeout);
 
     if (!response.ok) {
       const text = await response.text();
-      console.error("Cobalt error response:", text);
-      return res.status(502).json({ error: "Upstream retrieval failed", details: text });
+      return res.status(502).json({ error: "Upstream failed", details: text });
     }
 
     const data = await response.json();
-    console.log("Cobalt response data:", data);
 
-    if (!data.url) return res.status(404).json({ error: "No video found" });
+    if (!data.url) return res.status(404).json({ error: "No downloadable video found" });
 
     return res.status(200).json({ url: data.url });
 
   } catch (err) {
-    console.error("Server error:", err);
-    return res.status(500).json({ error: "Server error", details: err.message });
-  }
-}
-
-
-  } catch (err) {
+    if (err.name === "AbortError") {
+      return res.status(504).json({ error: "Upstream timeout" });
+    }
     console.error(err);
     return res.status(500).json({ error: "Server error" });
   }
