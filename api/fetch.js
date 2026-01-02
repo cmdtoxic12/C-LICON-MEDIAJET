@@ -26,16 +26,18 @@ export default async function handler(req, res) {
      * TIKTOK-API23 via RapidAPI
      * API Link: https://rapidapi.com/Lundehund/api/tiktok-api23
      */
+    // IMPORTANT: Replace the string below with your actual key from RapidAPI
     const RAPID_API_KEY = '66f5cf6778mshb00f72e9432debdp1971dfjsn00e4302cc7de'; 
     const RAPID_API_HOST = 'tiktok-api23.p.rapidapi.com';
 
     try {
-        // Fallback for demo purposes if key is missing
+        // If you still have the placeholder, we show the demo to prevent a 500 error.
+        // Once you replace 'YOUR_RAPID_API_KEY_HERE', this block will be skipped.
         if (RAPID_API_KEY === '66f5cf6778mshb00f72e9432debdp1971dfjsn00e4302cc7de') {
             return res.status(200).json({
                 success: true,
-                title: "[DEMO] No API Key Found in api/fetch.js",
-                author: "@dev_mode",
+                title: "[DEMO MODE] Enter your API Key in api/fetch.js to see real content",
+                author: "@system_notice",
                 thumbnail: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400",
                 video_url: "https://www.w3schools.com/html/mov_bbb.mp4",
                 audio_url: "https://www.w3schools.com/html/horse.mp3",
@@ -54,26 +56,30 @@ export default async function handler(req, res) {
         
         const result = await response.json();
 
+        // Debug log for Vercel console
+        console.log('API Result:', JSON.stringify(result).substring(0, 200));
+
         // Mapping tiktok-api23 response structure
-        // The API usually returns video info in the root or under a 'video' object
-        if (result && result.author) {
+        // This API returns a specific structure; we check for the existence of the video data
+        if (result && (result.author || result.video)) {
             return res.status(200).json({
                 success: true,
                 title: result.desc || "TikTok Video",
-                author: `@${result.author.uniqueId}`,
-                thumbnail: result.video.cover,
-                // Using the play address which is typically the no-watermark link
-                video_url: result.video.playAddr, 
-                audio_url: result.music.playUrl,
+                author: result.author ? `@${result.author.uniqueId}` : "@user",
+                thumbnail: result.video ? result.video.cover : "",
+                // Using playAddr (No Watermark) and music playUrl
+                video_url: result.video ? result.video.playAddr : null, 
+                audio_url: result.music ? result.music.playUrl : null,
             });
         } else {
+            // Handle cases where the API returns an error message or different structure
             return res.status(400).json({ 
-                error: result.msg || "The video could not be fetched. Check if the URL is correct and public." 
+                error: result.message || result.msg || "The API could not find this video. It might be private or the link is expired." 
             });
         }
 
     } catch (error) {
         console.error('API Handler Error:', error);
-        res.status(500).json({ error: 'Server error processing the TikTok link.' });
+        res.status(500).json({ error: 'Server error processing the TikTok link. Check your API key and quota.' });
     }
 }
