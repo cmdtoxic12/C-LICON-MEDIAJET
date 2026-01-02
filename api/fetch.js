@@ -1,40 +1,34 @@
-// Vercel Serverless Function using tiktok-api23 via RapidAPI
+// Finalized Vercel Serverless Function for tiktok-api23
 // Path: api/fetch.js
 
 export default async function handler(req, res) {
-    // CORS Headers for Vercel
+    // 1. Set CORS Headers
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
+    // 2. Handle Preflight
+    if (req.method === 'OPTIONS') return res.status(200).end();
 
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
+    // 3. Method Validation
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
     const { url } = req.body;
-
     if (!url || !url.includes('tiktok.com')) {
         return res.status(400).json({ error: 'Please provide a valid TikTok link.' });
     }
 
-    /**
-     * TIKTOK-API23 via RapidAPI
-     * IMPORTANT: Replace the string below with your actual key from RapidAPI.
-     * If you are getting a 500 error, check your Vercel logs to see if the key is missing.
-     */
+    // 4. API Configuration
+    // Replace the placeholder below with your actual RapidAPI Key
     const RAPID_API_KEY = '66f5cf6778mshb00f72e9432debdp1971dfjsn00e4302cc7de'; 
     const RAPID_API_HOST = 'tiktok-api23.p.rapidapi.com';
 
     try {
-        // Validation to prevent 500 error if key is still placeholder
-        if (RAPID_API_KEY === '66f5cf6778mshb00f72e9432debdp1971dfjsn00e4302cc7de') {
+        // Guard against placeholder key to prevent confusing 500 errors
+        if (!RAPID_API_KEY || RAPID_API_KEY === '66f5cf6778mshb00f72e9432debdp1971dfjsn00e4302cc7de') {
             return res.status(400).json({ 
-                error: 'Backend Configuration Error: RAPID_API_KEY is still the placeholder. Please update api/fetch.js with your real key.' 
+                error: 'Config Error: Please add your real RapidAPI key to api/fetch.js' 
             });
         }
 
@@ -48,45 +42,36 @@ export default async function handler(req, res) {
             }
         });
 
+        // Check if API is up
         if (!response.ok) {
-            const errorText = await response.text();
-            return res.status(response.status).json({ 
-                error: `RapidAPI responded with ${response.status}: ${errorText}` 
-            });
+            const errBody = await response.text();
+            return res.status(response.status).json({ error: `API Provider Error: ${response.status}`, details: errBody });
         }
         
         const result = await response.json();
 
-        // Robust parsing for tiktok-api23 structure
-        // The API might return { data: {...} } or the object directly
-        const data = result.data || result;
+        // 5. Robust Data Mapping for tiktok-api23
+        // This API returns the video object either at the root or inside a .data property
+        const d = result.data || result;
 
-        if (data && (data.video || data.author || data.aweme_id)) {
-            // Mapping with fallbacks to prevent undefined property errors
-            const videoUrl = data.video?.playAddr || data.video?.play_addr?.url_list?.[0] || data.video?.download_addr;
-            const audioUrl = data.music?.playUrl || data.music?.play_url?.url_list?.[0];
-            const thumbnail = data.video?.cover || data.video?.origin_cover || data.video?.cover?.url_list?.[0];
-            const authorName = data.author?.uniqueId || data.author?.nickname || "tiktok_user";
-
-            return res.status(200).json({
+        if (d && (d.video || d.aweme_id)) {
+            // Priority Mapping: No Watermark (playAddr) > Download Link > Music
+            const responseData = {
                 success: true,
-                title: data.desc || data.title || "TikTok Video",
-                author: `@${authorName}`,
-                thumbnail: thumbnail || "",
-                video_url: videoUrl, 
-                audio_url: audioUrl,
-            });
+                title: d.desc || d.title || "TikTok Video",
+                author: d.author ? `@${d.author.uniqueId || d.author.nickname}` : "@user",
+                thumbnail: d.video?.cover || d.video?.origin_cover || "",
+                video_url: d.video?.playAddr || d.video?.play_addr?.url_list?.[0] || d.video?.download_addr,
+                audio_url: d.music?.playUrl || d.music?.play_url?.url_list?.[0] || d.music?.play_url
+            };
+
+            return res.status(200).json(responseData);
         } else {
-            return res.status(400).json({ 
-                error: result.message || "The API returned an unexpected format. The video might be restricted or private." 
-            });
+            return res.status(404).json({ error: result.message || "No video data found for this link." });
         }
 
     } catch (error) {
-        console.error('Fetch Error:', error.message);
-        res.status(500).json({ 
-            error: 'Internal Server Error',
-            details: error.message 
-        });
+        console.error('Fetch Error:', error);
+        res.status(500).json({ error: 'Internal Server Error', details: error.message });
     }
 }
