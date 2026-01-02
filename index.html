@@ -68,7 +68,6 @@
 
   let history = [];
 
-  // Auto-paste detection
   document.addEventListener("paste", e => {
     const text = e.clipboardData.getData("text");
     if(text && text.startsWith("http")) input.value = text;
