@@ -27,12 +27,12 @@ export default async function handler(req, res) {
      * Get your key: https://rapidapi.com/tikwm-tikwm-default/api/tiktok-downloader-download-tiktok-videos-without-watermark
      * Paste your key below:
      */
-    const RAPID_API_KEY = 'YOUR_RAPID_API_KEY_HERE'; 
-    const RAPID_API_HOST = 'tiktok-downloader-download-tiktok-videos-without-watermark.p.rapidapi.com';
+    const RAPID_API_KEY = '66f5cf6778mshb00f72e9432debdp1971dfjsn00e4302cc7de'; 
+    const RAPID_API_HOST = 'tiktok-video-downloader-api-no-watermark.p.rapidapi.com';
 
     try {
         // Fallback for demo purposes if key is missing
-        if (RAPID_API_KEY === 'YOUR_RAPID_API_KEY_HERE') {
+        if (RAPID_API_KEY === '66f5cf6778mshb00f72e9432debdp1971dfjsn00e4302cc7de') {
             return res.status(200).json({
                 success: true,
                 title: "Example: Nature is beautiful 🌿 #foryou",
