@@ -1,53 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Video Link Retriever</title>
+  <meta charset="UTF-8">
+  <title>MediaJet Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: system-ui, sans-serif; padding: 2rem; }
-    input { width: 100%; padding: 0.5rem; }
-    button { margin-top: 1rem; padding: 0.6rem 1rem; }
-    #status { margin-top: 1rem; }
+    body { margin:0; font-family: Inter, system-ui, sans-serif; background: linear-gradient(135deg, #0f172a, #020617); color: #e5e7eb; }
+    .app { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .card { background: rgba(15,23,42,0.9); padding:2rem; border-radius:1.5rem; max-width:480px; width:100%; box-shadow:0 20px 40px rgba(0,0,0,0.5); backdrop-filter:blur(20px); }
+    h1 { font-size:2rem; margin-bottom:0.5rem; }
+    .subtitle { opacity:0.7; font-size:0.9rem; margin-bottom:1.5rem; }
+    input, select { width:100%; padding:0.8rem 1rem; border-radius:0.8rem; border:none; margin-bottom:0.8rem; background:#020617; color:white; font-size:0.95rem; }
+    button { width:100%; padding:0.8rem; border-radius:0.8rem; border:none; background:linear-gradient(135deg,#6366f1,#a855f7); color:white; font-weight:600; cursor:pointer; transition:0.15s ease; }
+    button:hover { transform: translateY(-1px); opacity:0.9; }
+    button:disabled { opacity:0.5; cursor:not-allowed; }
+    .error { margin-top:0.8rem; color:#f87171; font-size:0.9rem; }
+    .download { display:block; margin-top:1rem; padding:0.7rem; border-radius:0.7rem; background:#16a34a; color:white; text-decoration:none; font-weight:600; }
+    .history { margin-top:1rem; max-height:200px; overflow-y:auto; font-size:0.85rem; border-top:1px solid #374151; padding-top:0.8rem; }
+    .history-item { margin-bottom:0.5rem; }
+    .platform-icon { width:20px; vertical-align:middle; margin-right:6px; }
   </style>
 </head>
 <body>
 
-  <h1>Video Retriever</h1>
+<div class="app">
+  <div class="card">
+    <h1>MediaJet Pro</h1>
+    <p class="subtitle">Paste or copy a video link to retrieve downloadable files.</p>
 
-  <input id="videoUrl" placeholder="Paste a public video link" />
-  <button id="btn">Retrieve</button>
-  <div id="status"></div>
+    <input id="videoUrl" placeholder="https://tiktok.com/... or YouTube..." />
+    
+    <select id="format">
+      <option value="mp4">MP4 (Video)</option>
+      <option value="mp3">MP3 (Audio)</option>
+    </select>
+    
+    <select id="resolution">
+      <option value="720p">720p</option>
+      <option value="1080p">1080p</option>
+    </select>
 
-  <script type="module">
-    const btn = document.getElementById("btn");
-    const status = document.getElementById("status");
+    <button id="btn">Retrieve</button>
 
-    btn.addEventListener("click", async () => {
-      const url = document.getElementById("videoUrl").value.trim();
-      if (!url) return alert("Paste a link first");
+    <p id="message" class="error"></p>
+    <a id="download" class="download" style="display:none" target="_blank">Download</a>
 
-      status.textContent = "Processing...";
-      btn.disabled = true;
+    <div class="history" id="history"></div>
+  </div>
+</div>
 
-      try {
-        const res = await fetch("/api/retrieve", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url })
-        });
+<script>
+  const btn = document.getElementById("btn");
+  const input = document.getElementById("videoUrl");
+  const message = document.getElementById("message");
+  const download = document.getElementById("download");
+  const formatSelect = document.getElementById("format");
+  const resolutionSelect = document.getElementById("resolution");
+  const historyEl = document.getElementById("history");
 
-        const data = await res.json();
+  const platformMap = [
+    { name:"YouTube", domains:["youtube.com","youtu.be"], icon:"https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon.svg" },
+    { name:"TikTok", domains:["tiktok.com"], icon:"https://upload.wikimedia.org/wikipedia/en/a/a9/TikTok_logo.svg" },
+    { name:"Instagram", domains:["instagram.com"], icon:"https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" },
+    { name:"Twitter / X", domains:["twitter.com","x.com"], icon:"https://upload.wikimedia.org/wikipedia/en/6/60/Twitter_Logo_as_of_2021.svg" },
+    { name:"Vimeo", domains:["vimeo.com"], icon:"https://upload.wikimedia.org/wikipedia/commons/9/9c/Vimeo_Logo.svg" }
+  ];
 
-        if (!res.ok) throw new Error(data.error || "Failed");
+  let history = [];
 
-        status.innerHTML = `<a href="${data.url}" target="_blank">Download video</a>`;
-      } catch (err) {
-        status.textContent = err.message;
-      } finally {
-        btn.disabled = false;
-      }
+  // Auto-paste detection
+  document.addEventListener("paste", e => {
+    const text = e.clipboardData.getData("text");
+    if(text && text.startsWith("http")) input.value = text;
+  });
+
+  function detectPlatform(url){
+    try {
+      const host = new URL(url).hostname.replace("www.","");
+      return platformMap.find(p => p.domains.some(d => host.includes(d)));
+    } catch { return null; }
+  }
+
+  function addToHistory(item){
+    history.push(item);
+    renderHistory();
+  }
+
+  function renderHistory(){
+    historyEl.innerHTML = "";
+    history.forEach(h=>{
+      const div = document.createElement("div");
+      div.className = "history-item";
+      div.innerHTML = `<img src="${h.icon}" class="platform-icon">${h.name} - <a href="${h.url}" target="_blank">${h.url}</a> [${h.format}/${h.resolution}]`;
+      historyEl.appendChild(div);
     });
-  </script>
+  }
+
+  btn.addEventListener("click", async ()=>{
+    const url = input.value.trim();
+    if(!url){ message.textContent="Paste a link first."; return; }
+
+    const platform = detectPlatform(url);
+    if(!platform){ message.textContent="Unsupported platform."; return; }
+
+    const format = formatSelect.value;
+    const resolution = resolutionSelect.value;
+
+    message.textContent = `Detected ${platform.name} — processing...`;
+    download.style.display="none";
+    btn.disabled=true;
+    btn.textContent="Processing...";
+
+    try{
+      const res = await fetch("/api/retrieve",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ url, format, resolution })
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || "Failed");
+
+      download.href = data.url;
+      download.style.display="block";
+      download.textContent = `Download (${format.toUpperCase()}, ${resolution})`;
+      message.textContent=`Ready from ${platform.name}`;
+
+      addToHistory({
+        url: data.url,
+        name: platform.name,
+        icon: platform.icon,
+        format,
+        resolution
+      });
+
+      input.value="";
+    }catch(err){
+      message.textContent = err.message;
+    }finally{
+      btn.disabled=false;
+      btn.textContent="Retrieve";
+    }
+  });
+</script>
 
 </body>
 </html>
