@@ -1,136 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>MediaJet Pro</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  body { margin:0; font-family: Inter, system-ui, sans-serif; background: linear-gradient(135deg, #0f172a, #020617); color: #e5e7eb; }
-  .app { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
-  .card { background: rgba(15,23,42,0.9); padding:2rem; border-radius:1.5rem; max-width:480px; width:100%; box-shadow:0 20px 40px rgba(0,0,0,0.5); backdrop-filter:blur(20px); }
-  h1 { font-size:2rem; margin-bottom:0.5rem; }
-  .subtitle { opacity:0.7; font-size:0.9rem; margin-bottom:1rem; }
-  textarea, select { width:100%; padding:0.8rem 1rem; border-radius:0.8rem; border:none; margin-bottom:0.8rem; background:#020617; color:white; font-size:0.95rem; }
-  button { width:100%; padding:0.8rem; border-radius:0.8rem; border:none; background:linear-gradient(135deg,#6366f1,#a855f7); color:white; font-weight:600; cursor:pointer; transition:0.15s ease; }
-  button:hover { transform: translateY(-1px); opacity:0.9; }
-  button:disabled { opacity:0.5; cursor:not-allowed; }
-  .error { margin-top:0.8rem; color:#f87171; font-size:0.9rem; }
-  .history { margin-top:1rem; max-height:300px; overflow-y:auto; font-size:0.85rem; border-top:1px solid #374151; padding-top:0.8rem; }
-  .history-item { margin-bottom:0.5rem; }
-  .progress { height:4px; background:#16a34a; margin-top:2px; border-radius:2px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnappyDown - TikTok Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; min-height: 100vh; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .tiktok-btn { background: linear-gradient(90deg, #ff0050 0%, #00f2ea 100%); }
+        .loader { border-top-color: #ff0050; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body>
+<body class="flex flex-col items-center justify-center p-6">
 
-<div class="app">
-  <div class="card">
-    <h1>MediaJet Pro</h1>
-    <p class="subtitle">Paste one or more video links (one per line) to retrieve downloads.</p>
+    <div class="w-full max-w-xl">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold mb-2">Snappy<span class="text-cyan-400">Down</span></h1>
+            <p class="text-slate-400">Serverless TikTok Downloader</p>
+        </div>
 
-    <textarea id="videoUrls" placeholder="Paste URLs here, one per line" rows="4"></textarea>
+        <div class="glass p-8 rounded-3xl shadow-2xl">
+            <div class="space-y-4">
+                <input type="text" id="urlInput" placeholder="Paste TikTok link..." 
+                    class="w-full bg-slate-900/50 border border-slate-700 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                
+                <button onclick="fetchVideo()" class="w-full py-4 rounded-2xl tiktok-btn font-bold text-lg hover:brightness-110 active:scale-[0.98] transition-all">
+                    Get Media
+                </button>
+            </div>
 
-    <select id="format">
-      <option value="mp4">MP4 (Video)</option>
-      <option value="mp3">MP3 (Audio)</option>
-    </select>
+            <div id="loading" class="hidden mt-8 flex flex-col items-center">
+                <div class="loader w-10 h-10 border-4 border-slate-700 rounded-full mb-3"></div>
+                <p class="text-slate-400">Querying Serverless Function...</p>
+            </div>
 
-    <select id="resolution">
-      <option value="720p">720p</option>
-      <option value="1080p">1080p</option>
-    </select>
+            <div id="results" class="hidden mt-8 fade-in">
+                <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-700 flex gap-4">
+                    <img id="thumb" class="w-24 h-32 object-cover rounded-lg shadow-lg" src="" alt="">
+                    <div class="flex-1">
+                        <h3 id="title" class="font-bold line-clamp-2 mb-1 text-sm"></h3>
+                        <p id="author" class="text-cyan-400 text-xs mb-4"></p>
+                        <div class="flex flex-col gap-2">
+                            <a id="vLink" href="#" target="_blank" class="bg-white/10 text-center py-2 rounded-lg text-xs font-semibold hover:bg-white/20">Video (HD)</a>
+                            <a id="aLink" href="#" target="_blank" class="bg-white/10 text-center py-2 rounded-lg text-xs font-semibold hover:bg-white/20">Audio (MP3)</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <p id="error" class="hidden mt-4 text-red-400 text-center text-sm font-medium"></p>
+        </div>
+    </div>
 
-    <button id="btn">Retrieve</button>
+    <script>
+        async function fetchVideo() {
+            const url = document.getElementById('urlInput').value.trim();
+            const results = document.getElementById('results');
+            const loader = document.getElementById('loading');
+            const error = document.getElementById('error');
 
-    <p id="message" class="error"></p>
-    <div class="history" id="history"></div>
-  </div>
-</div>
+            if(!url) return;
 
-<script>
-const btn = document.getElementById("btn");
-const textarea = document.getElementById("videoUrls");
-const message = document.getElementById("message");
-const formatSelect = document.getElementById("format");
-const resolutionSelect = document.getElementById("resolution");
-const historyEl = document.getElementById("history");
+            results.classList.add('hidden');
+            error.classList.add('hidden');
+            loader.classList.remove('hidden');
 
-const platformMap = [
-  { name:"YouTube", domains:["youtube.com","youtu.be"], icon:"https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon.svg" },
-  { name:"TikTok", domains:["tiktok.com"], icon:"https://upload.wikimedia.org/wikipedia/en/a/a9/TikTok_logo.svg" },
-  { name:"Instagram", domains:["instagram.com"], icon:"https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" },
-  { name:"Twitter / X", domains:["twitter.com","x.com"], icon:"https://upload.wikimedia.org/wikipedia/en/6/60/Twitter_Logo_as_of_2021.svg" }
-];
+            try {
+                // IMPORTANT: In Vercel, the path /api/fetch points to api/fetch.js
+                const response = await fetch('/api/fetch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
 
-let history = [];
+                const data = await response.json();
 
-function detectPlatform(url){
-  try {
-    const host = new URL(url).hostname.replace("www.","");
-    return platformMap.find(p => p.domains.some(d => host.includes(d)));
-  } catch { return null; }
-}
-
-function addToHistory(item){
-  history.push(item);
-  renderHistory();
-}
-
-function renderHistory(){
-  historyEl.innerHTML = "";
-  history.forEach(h=>{
-    const div = document.createElement("div");
-    div.className = "history-item";
-    div.innerHTML = `<img src="${h.icon}" style="width:20px;vertical-align:middle;margin-right:6px">${h.name} - <a href="${h.url}" target="_blank">${h.url}</a> [${h.format}/${h.resolution}]<div class="progress" style="width:${h.progress}%"></div>`;
-    historyEl.appendChild(div);
-  });
-}
-
-btn.addEventListener("click", async ()=>{
-  const urls = textarea.value.split("\n").map(u=>u.trim()).filter(Boolean);
-  if(urls.length===0){ message.textContent="Paste at least one URL"; return; }
-
-  const format = formatSelect.value;
-  const resolution = resolutionSelect.value;
-
-  btn.disabled = true;
-  message.textContent = `Processing ${urls.length} URL(s)...`;
-
-  for(let i=0;i<urls.length;i++){
-    const url = urls[i];
-    const platform = detectPlatform(url);
-    if(!platform){
-      addToHistory({ url, name:"Unsupported", icon:"", format, resolution, progress:0 });
-      continue;
-    }
-
-    addToHistory({ url, name:platform.name, icon:platform.icon, format, resolution, progress:0 });
-    renderHistory();
-
-    try{
-      const res = await fetch("/api/retrieve",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ url, format, resolution })
-      });
-      const data = await res.json();
-      if(!res.ok) throw new Error(data.error || "Failed");
-
-      history[i].url = data.url;
-      history[i].progress = 100;
-      renderHistory();
-
-    }catch(err){
-      history[i].progress = 0;
-      history[i].url += " (failed)";
-      renderHistory();
-    }
-  }
-
-  btn.disabled=false;
-  message.textContent="All done!";
-  textarea.value="";
-});
-</script>
-
+                if (data.success) {
+                    document.getElementById('title').innerText = data.title;
+                    document.getElementById('author').innerText = data.author;
+                    document.getElementById('thumb').src = data.thumbnail;
+                    document.getElementById('vLink').href = data.video_url;
+                    document.getElementById('aLink').href = data.audio_url;
+                    results.classList.remove('hidden');
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (err) {
+                error.innerText = "Error: " + err.message;
+                error.classList.remove('hidden');
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+    </script>
 </body>
 </html>
