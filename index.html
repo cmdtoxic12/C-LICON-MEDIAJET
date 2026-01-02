@@ -42,7 +42,7 @@
             <!-- Loading UI -->
             <div id="loading" class="hidden mt-8 flex flex-col items-center">
                 <div class="loader w-10 h-10 border-4 border-slate-700 rounded-full mb-3"></div>
-                <p class="text-slate-400 text-sm">Processing via Cloud API...</p>
+                <p class="text-slate-400 text-sm">Querying tiktok-api23...</p>
             </div>
 
             <!-- Result UI -->
@@ -60,12 +60,12 @@
                     </div>
                     
                     <div class="grid grid-cols-1 gap-3">
-                        <a id="vLink" href="#" target="_blank" class="flex items-center justify-center gap-3 bg-white/10 text-white py-3 rounded-xl font-bold hover:bg-white/20 transition-all">
+                        <button onclick="downloadFile('v')" class="flex items-center justify-center gap-3 bg-white/10 text-white py-3 rounded-xl font-bold hover:bg-white/20 transition-all">
                             <i class="fas fa-video"></i> No Watermark Video
-                        </a>
-                        <a id="aLink" href="#" target="_blank" class="flex items-center justify-center gap-3 bg-cyan-500/10 text-cyan-400 py-3 rounded-xl font-bold hover:bg-cyan-500/20 transition-all">
+                        </button>
+                        <button onclick="downloadFile('a')" class="flex items-center justify-center gap-3 bg-cyan-500/10 text-cyan-400 py-3 rounded-xl font-bold hover:bg-cyan-500/20 transition-all">
                             <i class="fas fa-music"></i> Download MP3
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -88,11 +88,13 @@
         </section>
 
         <footer class="mt-12 text-center text-slate-500 text-[10px] uppercase tracking-widest">
-            <p>&copy; 2026 SnappyDown Tool. Personal Use Only.</p>
+            <p>&copy; 2026 SnappyDown Tool. Powered by tiktok-api23.</p>
         </footer>
     </div>
 
     <script>
+        let currentMedia = { video: null, audio: null };
+
         document.addEventListener('DOMContentLoaded', updateHistoryUI);
 
         async function fetchVideo() {
@@ -126,8 +128,10 @@
                     document.getElementById('title').innerText = data.title;
                     document.getElementById('authorName').innerText = data.author;
                     document.getElementById('thumb').src = data.thumbnail;
-                    document.getElementById('vLink').href = data.video_url;
-                    document.getElementById('aLink').href = data.audio_url;
+                    
+                    // Store links globally for the download buttons
+                    currentMedia.video = data.video_url;
+                    currentMedia.audio = data.audio_url;
                     
                     results.classList.remove('hidden');
                     saveToHistory(data);
@@ -139,6 +143,15 @@
             } finally {
                 loader.classList.add('hidden');
                 btn.disabled = false;
+            }
+        }
+
+        function downloadFile(type) {
+            const link = type === 'v' ? currentMedia.video : currentMedia.audio;
+            if (link) {
+                window.open(link, '_blank');
+            } else {
+                showError("Media link not available for this video.");
             }
         }
 
