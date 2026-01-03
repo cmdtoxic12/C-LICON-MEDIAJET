@@ -274,8 +274,8 @@
                         <div class="history-desc">${new Date(item.date).toLocaleString()}</div>
                     </div>
                     <div class="history-actions">
-                        ${item.video} ? `<)a href=" ${item.video}" download="tiktok_video.mp4" class="download-btn">Video</a>` : ''
-                        ${item.audio} ? `<)a href=" ${item.audio}" download="tiktok_audio.mp3" class="download-btn audio-btn">Audio</a>` : ''}
+                        ${item.video ? `<a href=" ${item.video}" download="tiktok_video.mp4" class="download-btn">Video</a>` : ''}
+                        ${item.audio ? `<a href=" ${item.audio}" download="tiktok_audio.mp3" class="download-btn audio-btn">Audio</a>` : ''}
                     </div>
                 </div>
             `).join('');
