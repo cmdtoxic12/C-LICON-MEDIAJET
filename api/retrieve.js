@@ -1,8 +1,8 @@
 const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed - use POST' });
+    if (req.method !== 'POST') {  // Frontend sends POST with URL in body
+        return res.status(405).json({ error: 'Method not allowed' });
     }
 
     const { url: tiktokUrl } = req.body;
@@ -10,21 +10,20 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Invalid or missing TikTok URL' });
     }
 
-    const apiKey = process.env.RAPIDAPI_KEY;  // Set this in Vercel env vars!
-    const apiHost = 'tiktok-download-video-no-watermark.p.rapidapi.com';  // New host
+    const apiKey = process.env.RAPIDAPI_KEY;  // Use your env var (never hardcode!)
+    const apiHost = 'tiktok-video-audio-downloader1.p.rapidapi.com';
 
     try {
-        // Correct endpoint for this API: /fetch (accepts full URL)
-        const rapidUrl = `https://${apiHost}/fetch`;
+        // Encode the TikTok URL and append as ?url=
+        const encodedUrl = encodeURIComponent(tiktokUrl);
+        const rapidUrl = `https://${apiHost}/?url=${encodedUrl}`;
 
         const response = await fetch(rapidUrl, {
-            method: 'POST',
+            method: 'GET',
             headers: {
                 'X-RapidAPI-Key': apiKey,
-                'X-RapidAPI-Host': apiHost,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ url: tiktokUrl })  // Send full URL in JSON body
+                'X-RapidAPI-Host': apiHost
+            }
         });
 
         if (!response.ok) {
@@ -34,11 +33,11 @@ module.exports = async (req, res) => {
 
         const data = await response.json();
 
-        // Field extraction for GoDownloader API (tested pattern)
-        const videoLink = data?.video?.noWatermark || data?.video?.url || '';
-        const audioLink = data?.music?.url || data?.audio?.url || '';
-        const cover = data?.cover || data?.thumbnail || data?.video?.cover || '';
-        const desc = data?.description || data?.title || 'TikTok Video';
+        // Common fields for similar APIs – adjust after your first test response
+        const videoLink = data?.video?.no_watermark || data?.hd_video || data?.video_url || data?.download_url || '';
+        const audioLink = data?.audio || data?.music_url || data?.mp3 || '';
+        const cover = data?.cover || data?.thumbnail || data?.images?.[0] || '';
+        const desc = data?.title || data?.description || data?.desc || 'TikTok Video';
 
         res.status(200).json({
             video: videoLink,
