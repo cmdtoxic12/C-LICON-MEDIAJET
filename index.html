@@ -289,7 +289,6 @@
             btn.classList.add('loading');
             btn.textContent = 'Snapping...';
             showError('');
-        }
         
             try {
                 const response = await fetch('/api/retrieve', {
@@ -318,7 +317,7 @@
                 if (data.video) html += `<a href="${data.video}" download="tiktok_video.mp4" class="download-btn">📹 Download Video (No Watermark)</a>`;
                 if (data.audio) html += `<a href="${data.audio}" download="tiktok_audio.mp3" class="download-btn audio-btn">🎵 Download Audio</a>`;
                 document.getElementById('result').innerHTML = html || '<p>No media found.</p>';
-            } catch (err) {
+      }catch (err) {
                 showError(err.message);
             } finally {
                 btn.classList.remove('loading');
