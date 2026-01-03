@@ -282,47 +282,50 @@
         }
 
         async function downloadMedia() {
-            const url = document.getElementById('tiktokUrl').value.trim();
-            if (!url) return showError('Paste a valid TikTok link!');
+    const url = document.getElementById('tiktokUrl').value.trim();
+    if (!url) return showError('Paste a valid TikTok link!');
 
-            const btn = document.getElementById('getBtn');
-            btn.classList.add('loading');
-            btn.textContent = 'Snapping...';
-            showError('');
-        
-            try {
-                const response = await fetch('/api/retrieve', {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url })
-                });
+    // Extract video ID more robustly
+    const videoIdMatch = url.match(/\/video\/(\d+)/) || url.match(/vm\.tiktok\.com\/([a-zA-Z0-9]+)/) || url.match(/tiktok\.com\/.*\/video\/(\d+)/);
+    if (!videoIdMatch) return showError('Invalid TikTok URL');
 
-                const data = await response.json();
-                if (!response.ok || data.error) throw new Error(data.error || 'Failed to fetch media');
+    const videoId = videoIdMatch[1];
 
-                // Add to history (with metadata if available)
-                const historyItem = {
-                    video: data.video || '',
-                    audio: data.audio || '',
-                    cover: data.cover || 'https://via.placeholder.com/80x140?text=No+Cover',
-                    desc: data.desc || 'TikTok Video',
-                    date: Date.now()
-                };
-                history.unshift(historyItem);
-                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-                renderHistory();
+    const btn = document.getElementById('getBtn');
+    btn.classList.add('loading');
+    btn.textContent = 'Snapping...';
+    showError('');
+    document.getElementById('result').innerHTML = '';
 
-                // Show current download buttons
-                let html = '';
-                if (data.video) html += `<a href="${data.video}" download="tiktok_video.mp4" class="download-btn">📹 Download Video (No Watermark)</a>`;
-                if (data.audio) html += `<a href="${data.audio}" download="tiktok_audio.mp3" class="download-btn audio-btn">🎵 Download Audio</a>`;
-                document.getElementById('result').innerHTML = html || '<p>No media found.</p>';
-      }catch (err) {
-                showError(err.message);
-            } finally {
-                btn.classList.remove('loading');
-                btn.textContent = 'Get Media';
-            }
+    try {
+        const response = await fetch(`/api/retrieve?id=${videoId}`);  // Now GET with query param
+
+        const data = await response.json();
+        if (!response.ok || data.error) throw new Error(data.error || 'Failed');
+
+        // Save to history and show buttons (same as before)
+        const historyItem = {
+            video: data.video || '',
+            audio: data.audio || '',
+            cover: data.cover || 'https://via.placeholder.com/80x140?text=No+Cover',
+            desc: data.desc || 'TikTok Video',
+            date: Date.now()
+        };
+        history.unshift(historyItem);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        renderHistory();
+
+        let html = '';
+        if (data.video) html += `<a href="${data.video}" download="tiktok_video.mp4" class="download-btn">📹 Download Video (No Watermark)</a>`;
+        if (data.audio) html += `<a href="${data.audio}" download="tiktok_audio.mp3" class="download-btn audio-btn">🎵 Download Audio</a>`;
+        document.getElementById('result').innerHTML = html || '<p>No media found.</p>';
+
+    } catch (err) {
+        showError(err.message);
+    } finally {
+        btn.classList.remove('loading');
+        btn.textContent = 'Get Media';
+    }
         }
 
         function showError(msg) {
