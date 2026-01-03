@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnappyDown</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap');
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #0f0f1a;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 20% 80%, #ff2c55 0%, transparent 20%),
+                        radial-gradient(circle at 80% 20%, #00f2ea 0%, transparent 20%);
+            opacity: 0.3;
+            animation: pulseBg 8s infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes pulseBg {
+            0% { transform: scale(1); opacity: 0.2; }
+            100% { transform: scale(1.2); opacity: 0.4; }
+        }
+
+        .container {
+            z-index: 1;
+            text-align: center;
+            padding: 40px 20px;
+            max-width: 700px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(90deg, #ff2c55, #00f2ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glowText 2s infinite alternate;
+        }
+
+        @keyframes glowText {
+            from { filter: drop-shadow(0 0 10px #ff2c55); }
+            to { filter: drop-shadow(0 0 20px #00f2ea); }
+        }
+
+        p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .input-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 18px 24px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            box-shadow: 0 0 20px rgba(0,242,234,0.5);
+        }
+
+        input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(45deg, #ff2c55, #00f2ea);
+            color: white;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s;
+            box-shadow: 0 10px 30px rgba(255,45,88,0.4);
+        }
+
+        button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,242,234,0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button.loading::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        #error { color: #ff6b6b; margin: 20px 0; font-weight: bold; }
+
+        #result {
+            margin: 30px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .download-btn {
+            padding: 15px;
+            background: linear-gradient(45deg, #ff2c55, #fe2c55);
+            border-radius: 15px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(255,45,88,0.4);
+            transition: all 0.3s;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(255,45,88,0.6);
+        }
+
+        .audio-btn {
+            background: linear-gradient(45deg, #00f2ea, #00c4ff);
+            box-shadow: 0 5px 15px rgba(0,242,234,0.4);
+        }
+
+        .audio-btn:hover {
+            box-shadow: 0 10px 25px rgba(0,242,234,0.6);
+        }
+
+        h2 {
+            margin-top: 50px;
+            font-size: 2rem;
+            background: linear-gradient(90deg, #00f2ea, #ff2c55);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #history {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .history-item {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.3s;
+        }
+
+        .history-item:hover {
+            transform: translateX(10px);
+        }
+
+        .history-thumb {
+            width: 80px;
+            height: 140px;
+            border-radius: 10px;
+            object-fit: cover;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .history-info {
+            flex: 1;
+            text-align: left;
+        }
+
+        .history-desc {
+            opacity: 0.8;
+            font-size: 0.9rem;
+            margin: 5px 0;
+        }
+
+        .history-date {
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        .history-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SnappyDown</h1>
+        <p>Vercel Powered TikTok Media Downloader</p>
+
+        <div class="input-box">
+            <input type="text" id="tiktokUrl" placeholder="Paste TikTok link here...">
+        </div>
+
+        <button id="getBtn" onclick="downloadMedia()">Get Media</button>
+
+        <div id="error"></div>
+        <div id="result"></div>
+
+        <h2>Download History</h2>
+        <div id="history"></div>
+    </div>
+
+    <footer>© 2026 SNAPPYDOWN - TIKTOK-API23 V2.0</footer>
+
+    <script>
+        const HISTORY_KEY = 'snappyDownHistory';
+        let history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+
+        function renderHistory() {
+            const historyEl = document.getElementById('history');
+            if (history.length === 0) {
+                historyEl.innerHTML = '<p>No downloads yet. Start snapping!</p>';
+                return;
+            }
+
+            historyEl.innerHTML = history.reverse().map(item => `
+                <div class="history-item">
+                    <img src="${item.cover}" alt="Cover" class="history-thumb">
+                    <div class="history-info">
+                        <div>${item.desc || 'No description'}</div>
+                        <div class="history-desc">${new Date(item.date).toLocaleString()}</div>
+                    </div>
+                    <div class="history-actions">
+                        \( {item.video ? `<a href=" \){item.video}" download="tiktok_video.mp4" class="download-btn">Video</a>` : ''}
+                        \( {item.audio ? `<a href=" \){item.audio}" download="tiktok_audio.mp3" class="download-btn audio-btn">Audio</a>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function downloadMedia() {
+            const url = document.getElementById('tiktokUrl').value.trim();
+            if (!url) return showError('Paste a valid TikTok link!');
+
+            const btn = document.getElementById('getBtn');
+            btn.classList.add('loading');
+            btn.textContent = 'Snapping...';
+            showError('');
+
+            try {
+                const response = await fetch('/api/retrieve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+                if (!response.ok || data.error) throw new Error(data.error || 'Failed to fetch media');
+
+                // Add to history (with metadata if available)
+                const historyItem = {
+                    video: data.video || '',
+                    audio: data.audio || '',
+                    cover: data.cover || 'https://via.placeholder.com/80x140?text=No+Cover',
+                    desc: data.desc || 'TikTok Video',
+                    date: Date.now()
+                };
+                history.unshift(historyItem);
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                renderHistory();
+
+                // Show current download buttons
+                let html = '';
+                if (data.video) html += `<a href="${data.video}" download="tiktok_video.mp4" class="download-btn">📹 Download Video (No Watermark)</a>`;
+                if (data.audio) html += `<a href="${data.audio}" download="tiktok_audio.mp3" class="download-btn audio-btn">🎵 Download Audio</a>`;
+                document.getElementById('result').innerHTML = html || '<p>No media found.</p>';
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                btn.classList.remove('loading');
+                btn.textContent = 'Get Media';
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('error').textContent = msg;
+        }
+
+        // Load history on page load
+        renderHistory();
+    </script>
+</body>
+</html>
