@@ -297,11 +297,11 @@
             document.getElementById('result').innerHTML = '';
 
             try {
-                        const response = await fetch('/api/retrieve.js', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url })  // Send full TikTok URL
-        });
+                const response = await fetch('/api/retrieve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url })  // 'url' is the full TikTok link from input
+});
                 if (!response.ok) {
                     const errText = await response.text();
                     throw new Error(errText || 'Server error');
