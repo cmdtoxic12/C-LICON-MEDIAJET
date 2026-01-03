@@ -20,20 +20,22 @@ module.exports = async (req, res) => {
         // /video ?id=...
         // /api/post/detail ?id=...
         // Test in RapidAPI playground to confirm!
-        const rapidUrl = `https://\( {apiHost}/post?id= \){id}`;  // Adjust if different, e.g., /video/detail or /aweme/detail
+        const url = 'https://tiktok-api23.p.rapidapi.com/api/post/detail?videoId=7306132438047116586';
+const options = {
+	method: 'GET',
+	headers: {
+		'x-rapidapi-key': '66f5cf6778mshb00f72e9432debdp1971dfjsn00e4302cc7de',
+		'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com'
+	}
+};
 
-        const response = await fetch(rapidUrl, {
-            method: 'GET',
-            headers: {
-                'X-RapidAPI-Key': apiKey,
-                'X-RapidAPI-Host': apiHost
-            }
-        });
-
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`API error: ${response.status} - ${errText}`);
-        }
+try {
+	const response = await fetch(url, options);
+	const result = await response.text();
+	console.log(result);
+} catch (error) {
+	console.error(error);
+}
 
         const data = await response.json();
 
