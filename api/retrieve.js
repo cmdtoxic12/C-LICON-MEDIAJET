@@ -1,26 +1,28 @@
-const fetch = require('node-fetch'); // Vercel includes this by default, no install needed
+const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
+    if (req.method !== 'GET') {
+        return res.status(405).json({ error: 'Method not allowed - use GET' });
     }
 
-    const { url } = req.body;
-    if (!url) {
-        return res.status(400).json({ error: 'Missing TikTok URL' });
+    const { id } = req.query;  // Get videoId from ?id=...
+    if (!id) {
+        return res.status(400).json({ error: 'Missing id parameter' });
     }
 
     const apiKey = process.env.RAPIDAPI_KEY;
     const apiHost = 'tiktok-api23.p.rapidapi.com';
 
     try {
-        // Extract video ID from URL
-        const videoIdMatch = url.match(/\/video\/(\d+)/);
-        if (!videoIdMatch) throw new Error('Invalid TikTok URL');
+        // CHANGE THIS PATH TO THE CORRECT ONE FOR SINGLE POST
+        // Common possibilities based on similar APIs:
+        // /post ?id=...
+        // /video ?id=...
+        // /api/post/detail ?id=...
+        // Test in RapidAPI playground to confirm!
+        const rapidUrl = `https://\( {apiHost}/post?id= \){id}`;  // Adjust if different, e.g., /video/detail or /aweme/detail
 
-        const videoId = videoIdMatch[1];
-
-        const response = await fetch(`https://\( {apiHost}/post?id= \){videoId}`, {
+        const response = await fetch(rapidUrl, {
             method: 'GET',
             headers: {
                 'X-RapidAPI-Key': apiKey,
@@ -35,15 +37,11 @@ module.exports = async (req, res) => {
 
         const data = await response.json();
 
-        // IMPORTANT: Adjust these paths based on actual API response!
-        // Test in RapidAPI playground and update accordingly.
-        // Common fields from similar TikTok APIs:
-        // Adjust these based on actual tiktok-api23 response (test in RapidAPI playground!)
-        // Common fields from similar TikTok APIs:
-        const videoLink = data?.video?.no_watermark || data?.hdplay || data?.data?.video_url || data?.playAddr || '';
-        const audioLink = data?.music?.play_url || data?.music?.playUrl || data?.data?.music_url || '';
-        const cover = data?.video?.cover || data?.cover || data?.data?.cover || '';
-        const desc = data?.desc || data?.text || data?.data?.desc || 'TikTok Video';
+        // Extract fields (update based on real response)
+        const videoLink = data?.video?.no_watermark || data?.hdplay || data?.playAddr || data?.downloadAddr || '';
+        const audioLink = data?.music?.play_url || data?.music?.playUrl || '';
+        const cover = data?.video?.cover || data?.cover || data?.originCover || '';
+        const desc = data?.desc || data?.text || 'TikTok Video';
 
         res.status(200).json({ 
             video: videoLink, 
@@ -53,6 +51,6 @@ module.exports = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: error.message || 'Failed to fetch download links' });
+        res.status(500).json({ error: error.message || 'Failed to fetch media' });
     }
 };
