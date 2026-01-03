@@ -1,46 +1,47 @@
 const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
-    if (req.method !== 'GET') {
-        return res.status(405).json({ error: 'Method not allowed - use GET' });
+    if (req.method !== 'POST') {  // Changed to POST to match the API
+        return res.status(405).json({ error: 'Method not allowed - use POST' });
     }
 
-    const { id } = req.query;
-    if (!id) {
-        return res.status(400).json({ error: 'Missing id parameter' });
+    const { url: tiktokUrl } = req.body;  // Expect full TikTok URL in body
+    if (!tiktokUrl) {
+        return res.status(400).json({ error: 'Missing TikTok URL in body' });
     }
 
-    const apiKey = process.env.RAPIDAPI_KEY;  // Use env var – never hardcode!
-    if (!apiKey) {
-        return res.status(500).json({ error: 'API key not configured' });
-    }
-
-    const apiHost = 'tiktok-api23.p.rapidapi.com';
+    const apiKey = process.env.RAPIDAPI_KEY;  // NEVER hardcode your key!
+    const apiHost = 'tiktok-video-no-watermark2.p.rapidapi.com';
 
     try {
-        // Correct endpoint for single post (confirmed by API naming: "Post")
-        const rapidUrl = `https://${apiHost}/post?id=${id}`;
+        // Try common endpoints – start with /video (most likely for single video)
+        // Alternatives: '/item/detail', '/video/detail', '/download'
+        const rapidUrl = `https://${apiHost}/video`;  // Adjust if playground shows different
 
         const response = await fetch(rapidUrl, {
-            method: 'GET',
+            method: 'POST',
             headers: {
                 'X-RapidAPI-Key': apiKey,
-                'X-RapidAPI-Host': apiHost
-            }
+                'X-RapidAPI-Host': apiHost,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                url: tiktokUrl  // Key param: full TikTok video URL
+            })
         });
 
         if (!response.ok) {
             const errText = await response.text();
-            throw new Error(`RapidAPI error ${response.status}: ${errText.substring(0, 200)}`);
+            throw new Error(`API error ${response.status}: ${errText.substring(0, 200)}`);
         }
 
         const data = await response.json();
 
-        // Adjust these paths after testing one real response in RapidAPI playground
-        const videoLink = data?.video?.no_watermark || data?.hdplay || data?.playAddr || data?.downloadAddr || '';
-        const audioLink = data?.music?.play_url || data?.music?.playUrl || '';
-        const cover = data?.video?.cover || data?.cover || data?.originCover || '';
-        const desc = data?.desc || data?.text || 'TikTok Video';
+        // Common response fields for this API family (adjust after testing)
+        const videoLink = data?.data?.play || data?.data?.hdplay || data?.no_watermark || data?.video_url || '';
+        const audioLink = data?.data?.music || data?.music_url || data?.data?.music_info?.play || '';
+        const cover = data?.data?.cover || data?.cover || data?.origin_cover || '';
+        const desc = data?.data?.title || data?.desc || data?.data?.desc || 'TikTok Video';
 
         res.status(200).json({
             video: videoLink,
@@ -51,6 +52,6 @@ module.exports = async (req, res) => {
 
     } catch (error) {
         console.error('Backend error:', error);
-        res.status(500).json({ error: error.message || 'Failed to fetch from TikTok API' });
+        res.status(500).json({ error: error.message || 'Failed to fetch media' });
     }
 };
