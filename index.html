@@ -3,97 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Checkout | Paystack</title>
+    <title>Global Checkout | Powered by Paystack</title>
+    
     <script src="https://js.paystack.co/v2/inline.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --primary: #09a5db; /* Paystack Blue */
-            --glass: rgba(255, 255, 255, 0.2);
-            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #011b33;
+            --accent-color: #09a5db;
+            --text-main: #2d3748;
+            --bg-light: #f7fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--bg-gradient);
-            height: 100vh;
+            background-color: var(--bg-light);
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
         }
 
-        .payment-card {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 2.5rem;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        .checkout-container {
+            background: white;
             width: 100%;
-            max-width: 400px;
-            text-align: center;
+            max-width: 450px;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
         }
 
-        .payment-card h2 { color: #333; margin-bottom: 0.5rem; }
-        .payment-card p { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            color: #718096;
+        }
 
         .form-group {
-            text-align: left;
-            margin-bottom: 1.2rem;
+            margin-bottom: 20px;
         }
 
-        label { display: block; font-weight: 600; margin-bottom: 5px; color: #444; }
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
 
         input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
+            padding: 12px 16px;
+            border: 2px solid #edf2f7;
             border-radius: 8px;
-            box-sizing: border-box;
             font-size: 1rem;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
         }
 
         input:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(9, 165, 219, 0.1);
         }
 
-        .pay-btn {
-            width: 100%;
-            background: var(--primary);
-            color: white;
-            border: none;
+        .price-display {
+            background: #f0f9ff;
             padding: 15px;
             border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.3s;
-            margin-top: 1rem;
+            text-align: center;
+            margin-bottom: 25px;
+            border: 1px dashed var(--accent-color);
         }
 
-        .pay-btn:hover { background: #088ec1; transform: translateY(-2px); }
-        .pay-btn:active { transform: translateY(0); }
+        .price-display span {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        #pay-button {
+            width: 100%;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        #pay-button:hover {
+            background-color: #078fbd;
+        }
+
+        #pay-button:disabled {
+            background-color: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .footer-note {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            text-align: center;
+            color: #a0aec0;
+        }
     </style>
 </head>
 <body>
 
-<div class="payment-card">
-    <h2>Secure Checkout</h2>
-    <p>Complete your payment securely with Paystack</p>
-    
+<div class="checkout-container">
+    <div class="header">
+        <h1>Pay via Paystack</h1>
+        <p>Global payments made simple</p>
+    </div>
+
     <form id="paymentForm">
         <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" id="email-address" required placeholder="example@mail.com">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="customer@domain.com" required>
         </div>
+
         <div class="form-group">
-            <label>Amount (USD)</label>
-            <input type="number" id="amount" required placeholder="50.00">
+            <label for="amount">Amount (GHC)</label>
+            <input type="number" id="amount" placeholder="e.g. 0.00" step="0.01" required>
         </div>
-        <button type="submit" class="pay-btn" id="pay-button">Pay Now</button>
+
+        <div class="price-display">
+            Total to Pay: <span id="display-amount">¢0.00</span>
+        </div>
+
+        <button type="submit" id="pay-button">Complete Purchase</button>
     </form>
+
+    <p class="footer-note">🔒 Secured by Paystack. Your data is encrypted.</p>
 </div>
 
-<script src="app.js"></script>
+<script>
+    const paymentForm = document.getElementById('paymentForm');
+    const amountInput = document.getElementById('amount');
+    const displayAmount = document.getElementById('display-amount');
+
+    // Update the visual price tag as the user types
+    amountInput.addEventListener('input', () => {
+        const val = amountInput.value || 0;
+        displayAmount.innerText = `$${parseFloat(val).toFixed(2)}`;
+    });
+
+    paymentForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const amount = amountInput.value;
+
+        const paystack = new PaystackPop();
+        
+        paystack.newTransaction({
+            // INSERT YOUR PUBLIC KEY HERE
+            key: 'pk_live_7dd529be64447b4335bc3e572373b42b31f991e4', 
+            email: email,
+            amount: amount * 100, // Amount in cents/kobo
+            currency: 'GHC',
+            onSuccess: (transaction) => {
+                alert('Success! Reference: ' + transaction.reference);
+                // You can redirect to a thank you page here
+                // window.location.href = "/thanks.html";
+            },
+            onCancel: () => {
+                alert('Transaction was not completed.');
+            }
+        });
+    });
+</script>
+
 </body>
 </html>
