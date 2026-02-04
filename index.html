@@ -3,142 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Pay | Ghana</title>
-    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <title>Modern Checkout | Paystack</title>
+    <script src="https://js.paystack.co/v2/inline.js"></script>
     <style>
-        /* Modern Vibrant Background & Flexbox Centering */
+        :root {
+            --primary: #09a5db; /* Paystack Blue */
+            --glass: rgba(255, 255, 255, 0.2);
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
         body {
-            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
         }
 
-        /* Glassmorphism Card Effect */
         .payment-card {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2.5rem;
             border-radius: 20px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
             width: 100%;
             max-width: 400px;
             text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .payment-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
+        .payment-card h2 { color: #333; margin-bottom: 0.5rem; }
+        .payment-card p { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
 
-        h2 { color: #333; margin-bottom: 10px; }
-        p { color: #666; font-size: 14px; margin-bottom: 30px; }
-
-        /* Input Styling with Transitions */
-        .input-group {
-            margin-bottom: 20px;
+        .form-group {
             text-align: left;
+            margin-bottom: 1.2rem;
         }
 
-        label { display: block; font-size: 12px; font-weight: bold; color: #3a7bd5; margin-bottom: 5px; text-transform: uppercase; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; color: #444; }
 
         input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #eee;
-            border-radius: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.3s ease;
-            font-size: 16px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
         }
 
         input:focus {
-            border-color: #3a7bd5;
+            outline: none;
+            border-color: var(--primary);
         }
 
-        /* Vibrant Button with Transition */
-        button {
+        .pay-btn {
             width: 100%;
-            background: #3a7bd5;
+            background: var(--primary);
             color: white;
             border: none;
             padding: 15px;
-            border-radius: 10px;
-            font-size: 18px;
+            border-radius: 8px;
+            font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.3s ease, letter-spacing 0.3s ease;
-            margin-top: 10px;
+            transition: transform 0.2s, background 0.3s;
+            margin-top: 1rem;
         }
 
-        button:hover {
-            background: #00d2ff;
-            letter-spacing: 1px;
-        }
-
-        button:active {
-            transform: scale(0.98);
-        }
+        .pay-btn:hover { background: #088ec1; transform: translateY(-2px); }
+        .pay-btn:active { transform: translateY(0); }
     </style>
 </head>
 <body>
 
 <div class="payment-card">
     <h2>Secure Checkout</h2>
-    <p>Fast and secure payment via Paystack</p>
+    <p>Complete your payment securely with Paystack</p>
     
-    <div class="input-group">
-        <label>Email Address</label>
-        <input type="email" id="email-address" placeholder="customer@example.com" required>
-    </div>
-
-    <div class="input-group">
-        <label>Amount (GHS)</label>
-        <input type="number" id="amount" placeholder="0.00" required>
-    </div>
-
-    <button type="button" onclick="payWithPaystack()"> Pay Now </button>
+    <form id="paymentForm">
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="email-address" required placeholder="example@mail.com">
+        </div>
+        <div class="form-group">
+            <label>Amount (USD)</label>
+            <input type="number" id="amount" required placeholder="50.00">
+        </div>
+        <button type="submit" class="pay-btn" id="pay-button">Pay Now</button>
+    </form>
 </div>
 
-<script>
-  function payWithPaystack() {
-    const email = document.getElementById("email-address").value;
-    const amount = document.getElementById("amount").value;
-
-    if (!email || !amount) {
-        alert("Please fill in all details.");
-        return;
-    }
-
-    const handler = PaystackPop.setup({
-      key: 'pk_live_7dd529be64447b4335bc3e572373b42b31f991e4', // Replace with your Public Key
-      email: email,
-      amount: amount * 100, // Converts GHS to Pesewas
-      currency: 'GHS',
-      ref: 'TXN_' + Math.floor((Math.random() * 1000000000) + 1),
-      metadata: {
-         custom_fields: [
-            {
-                display_name: "Mobile Number",
-                variable_name: "mobile_number",
-                value: "Customer Input" 
-            }
-         ]
-      },
-      callback: function(response){
-          // This is where you'd redirect to a success page
-          window.location.href = "success.html?ref=" + response.reference;
-      },
-      onClose: function(){
-          console.log('Window closed.');
-      }
-    });
-    handler.openIframe();
-  }
-</script>
+<script src="app.js"></script>
 </body>
 </html>
