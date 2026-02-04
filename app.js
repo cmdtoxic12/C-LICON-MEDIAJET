@@ -10,7 +10,7 @@ paymentForm.addEventListener("submit", function(e) {
     const paystack = new PaystackPop();
 
     paystack.newTransaction({
-        key: 'YOUR_PUBLIC_KEY_HERE', // Replace with your Public Key
+        key: 'pk_live_7dd529be64447b4335bc3e572373b42b31f991e4', // Replace with your Public Key
         email: email,
         amount: amount * 100, // Paystack works in kobo/cents (Multiply by 100)
         currency: 'USD', // You can change this to GHS, NGN, ZAR, etc.
